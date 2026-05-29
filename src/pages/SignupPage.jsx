@@ -105,7 +105,7 @@ const SignupPage = () => {
           </h1>
 
           <p className="text-muted text-sm mt-2">
-            Join Breakdown Assist and get help on the road instantly
+            Join GarageGo and get help on the road instantly
           </p>
 
         </div>

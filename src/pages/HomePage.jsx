@@ -22,39 +22,57 @@ const HomePage = () => {
 
   if (!currentUser) {
     return (
-      <div className="flex justify-center pt-20">
-        <div className="card max-w-xl w-full text-center animate-fade-up">
-          <div className="mb-6">
+      <div className="landing-shell animate-fade-up">
+        <section className="landing-hero">
+          <div className="landing-hero-content">
             <span className="section-tag">
-              Roadside Assistance
+              Smart roadside help
             </span>
+
+            <h1 className="landing-title text-shimmer">
+              GarageGo
+            </h1>
+
+            <p className="landing-copy">
+              Instant mechanic support when your vehicle stops moving. Find
+              nearby help, send a live service request, and stay updated from
+              pickup to completion.
+            </p>
+
+            <div className="landing-actions">
+              <Link
+                to="/signup"
+                className="btn-primary"
+              >
+                Create Account
+              </Link>
+
+              <Link
+                to="/login"
+                className="btn-secondary"
+              >
+                Login
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-4xl font-semibold text-shimmer">
-            Breakdown Assist
-          </h1>
+          <div className="landing-status-panel" aria-label="Service highlights">
+            <div>
+              <span className="landing-stat-value">Fast</span>
+              <span className="landing-stat-label">Nearby response</span>
+            </div>
 
-          <p className="mt-4 text-muted text-sm leading-relaxed">
-            Instantly connect with nearby mechanics when your vehicle breaks down.
-            Fast response, trusted professionals, and real-time service requests.
-          </p>
+            <div>
+              <span className="landing-stat-value">Live</span>
+              <span className="landing-stat-label">Mechanic matching</span>
+            </div>
 
-          <div className="mt-10 flex justify-center gap-4 flex-wrap">
-            <Link
-              to="/login"
-              className="btn-primary"
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/signup"
-              className="btn-secondary"
-            >
-              Create Account
-            </Link>
+            <div>
+              <span className="landing-stat-value">ETA</span>
+              <span className="landing-stat-label">Distance aware</span>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
@@ -70,8 +88,8 @@ const HomePage = () => {
   if (!profile?.role) {
     if (!isOnboardingPending(currentUser?.uid)) {
       return (
-        <div className="flex justify-center pt-20">
-          <div className="card text-center max-w-md">
+        <div className="onboarding-shell">
+          <div className="setup-panel text-center max-w-md">
             <h2 className="text-xl font-semibold">
               Preparing Your Dashboard
             </h2>
@@ -93,8 +111,8 @@ const HomePage = () => {
     }
 
     return (
-      <div className="flex justify-center pt-20">
-        <div className="card text-center max-w-md">
+      <div className="onboarding-shell">
+        <div className="setup-panel text-center max-w-md">
           <h2 className="text-xl font-semibold">
             Complete Your Profile
           </h2>

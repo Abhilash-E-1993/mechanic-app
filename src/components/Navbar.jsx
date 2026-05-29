@@ -11,48 +11,32 @@ const Navbar = () => {
   };
 
   return (
-    <header
-      className="
-      sticky top-0 z-50
-      border-b border-[var(--border)]
-      bg-[rgba(13,13,26,0.75)]
-      backdrop-blur-xl
-      "
-    >
-      <div className="container-ui flex items-center justify-between py-4">
+    <header className="app-navbar">
+      <div className="container-ui app-navbar-inner">
 
         {/* BRAND */}
 
         <Link
           to="/"
-          className="
-          flex items-center gap-2
-          text-lg font-semibold
-          text-amber-light
-          hover:text-amber
-          transition
-          "
+          className="brand-link"
         >
-          🚗
-          <span className="tracking-tight">
-            Breakdown Assist
+          <span className="brand-mark" aria-hidden="true">
+            G
+          </span>
+
+          <span className="brand-name">
+            GarageGo
           </span>
         </Link>
 
         {/* RIGHT SIDE */}
 
         {currentUser && (
-          <div className="flex items-center gap-4">
+          <div className="app-navbar-actions">
 
             {/* ROLE BADGE */}
 
-            <span
-              className="
-              badge
-              bg-[rgba(245,158,11,0.12)]
-              text-[var(--amber-light)]
-              "
-            >
+            <span className="nav-role-badge">
               {profileLoading ? "loading..." : (profile?.role || "setup")}
             </span>
 
@@ -60,16 +44,7 @@ const Navbar = () => {
 
             <button
               onClick={handleLogout}
-              className="
-              px-4 py-2
-              text-sm
-              rounded-full
-              border border-[var(--border-2)]
-              text-[var(--text-2)]
-              hover:text-[var(--amber-light)]
-              hover:border-[var(--amber)]
-              transition
-              "
+              className="nav-logout-button"
             >
               Logout
             </button>

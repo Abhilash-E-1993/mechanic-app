@@ -192,34 +192,71 @@ const RoleSelectionPage = () => {
 
   return (
 
-    <div className="flex justify-center pt-16">
+    <div className="onboarding-shell">
 
-      <div className="card w-full max-w-2xl">
+      <div className="onboarding-panel w-full max-w-4xl">
 
-        <h1 className="text-3xl font-semibold text-center">
-          Complete Your Profile
-        </h1>
+        <div className="onboarding-header">
+          <span className="section-tag">
+            Account setup
+          </span>
+
+          <h1 className="onboarding-title">
+            Choose how you want to use GarageGo
+          </h1>
+
+          <p className="onboarding-copy">
+            Pick the role that fits you. We will keep the next steps focused
+            so your dashboard feels ready from the first visit.
+          </p>
+        </div>
 
         <form className="space-y-6 mt-8" onSubmit={handleSave}>
 
           {/* ROLE SELECT */}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="role-selector-grid">
 
             <button
               type="button"
               onClick={() => setRole("customer")}
-              className={`card p-4 ${role === "customer" ? "border-amber" : ""}`}
+              aria-pressed={role === "customer"}
+              className={`role-option-card ${
+                role === "customer" ? "role-option-card-active" : ""
+              }`}
             >
-              Customer
+              <span className="role-option-kicker">
+                I need help
+              </span>
+
+              <span className="role-option-title">
+                Customer
+              </span>
+
+              <span className="role-option-copy">
+                Request nearby mechanics and track active service requests.
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => setRole("mechanic")}
-              className={`card p-4 ${role === "mechanic" ? "border-amber" : ""}`}
+              aria-pressed={role === "mechanic"}
+              className={`role-option-card ${
+                role === "mechanic" ? "role-option-card-active" : ""
+              }`}
             >
-              Mechanic
+              <span className="role-option-kicker">
+                I provide service
+              </span>
+
+              <span className="role-option-title">
+                Mechanic
+              </span>
+
+              <span className="role-option-copy">
+                Share your garage details, service area, and repair skills.
+              </span>
             </button>
 
           </div>
@@ -228,70 +265,100 @@ const RoleSelectionPage = () => {
 
           {role === "mechanic" && (
 
-            <div className="space-y-4">
+            <div className="mechanic-profile-grid">
 
               {/* CITY */}
 
-              <select
-                value={city}
-                onChange={(e) => handleCityChange(e.target.value)}
-                className="input"
-              >
-                {CITY_OPTIONS.map((city) => (
-                  <option key={city}>{city}</option>
-                ))}
-              </select>
+              <div>
+                <label className="input-label">
+                  City
+                </label>
+
+                <select
+                  value={city}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  className="input"
+                >
+                  {CITY_OPTIONS.map((city) => (
+                    <option key={city}>{city}</option>
+                  ))}
+                </select>
+              </div>
 
               {/* AREA */}
 
-              <select
-                value={serviceArea}
-                onChange={(e) => setServiceArea(e.target.value)}
-                className="input"
-              >
-                {areaOptions.map((area) => (
-                  <option key={area}>{area}</option>
-                ))}
-              </select>
+              <div>
+                <label className="input-label">
+                  Service Area
+                </label>
+
+                <select
+                  value={serviceArea}
+                  onChange={(e) => setServiceArea(e.target.value)}
+                  className="input"
+                >
+                  {areaOptions.map((area) => (
+                    <option key={area}>{area}</option>
+                  ))}
+                </select>
+              </div>
 
               {/* GARAGE */}
 
-              <input
-                className="input"
-                placeholder="Garage Name"
-                value={garageName}
-                onChange={(e) => setGarageName(e.target.value)}
-              />
+              <div>
+                <label className="input-label">
+                  Garage Name
+                </label>
+
+                <input
+                  className="input"
+                  placeholder="Garage Name"
+                  value={garageName}
+                  onChange={(e) => setGarageName(e.target.value)}
+                />
+              </div>
 
               {/* PHONE */}
 
-              <input
-                className="input"
-                placeholder="Phone Number"
-                value={phoneNumber}
-                onChange={(e) =>
-                  setPhoneNumber(
-                    e.target.value.replace(/\D/g, "").slice(0, 10)
-                  )
-                }
-              />
+              <div>
+                <label className="input-label">
+                  Phone Number
+                </label>
+
+                <input
+                  className="input"
+                  placeholder="Phone Number"
+                  value={phoneNumber}
+                  onChange={(e) =>
+                    setPhoneNumber(
+                      e.target.value.replace(/\D/g, "").slice(0, 10)
+                    )
+                  }
+                />
+              </div>
 
               {/* EXPERIENCE */}
 
-              <input
-                className="input"
-                type="number"
-                min="0"
-                placeholder="Years of experience"
-                value={experienceYears}
-                onChange={(e) => setExperienceYears(e.target.value)}
-              />
+              <div>
+                <label className="input-label">
+                  Years of Experience
+                </label>
+
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  placeholder="Years of experience"
+                  value={experienceYears}
+                  onChange={(e) => setExperienceYears(e.target.value)}
+                />
+              </div>
 
               {/* SERVICES PROVIDED */}
 
-              <div>
+              <div className="mechanic-services-field">
 
-                <p className="text-sm font-medium mb-2">
+                <p className="input-label mb-3">
                   Services Provided
                 </p>
 

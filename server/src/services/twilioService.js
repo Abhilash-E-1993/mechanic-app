@@ -1,4 +1,5 @@
-const TWILIO_DEFAULT_CALL_DELAY_MS = 35000;
+const TWILIO_MIN_FALLBACK_DELAY_MS = 60000;
+const TWILIO_DEFAULT_CALL_DELAY_MS = 60000;
 const TWILIO_DEFAULT_TIMEOUT_SECONDS = 25;
 const TWILIO_API_BASE_URL = "https://api.twilio.com/2010-04-01";
 
@@ -48,7 +49,7 @@ export const getTwilioFallbackDelayMs = () => {
   const configuredValue = Number(process.env.TWILIO_FALLBACK_DELAY_MS);
 
   if (Number.isFinite(configuredValue) && configuredValue >= 1000) {
-    return configuredValue;
+    return Math.max(configuredValue, TWILIO_MIN_FALLBACK_DELAY_MS);
   }
 
   return TWILIO_DEFAULT_CALL_DELAY_MS;

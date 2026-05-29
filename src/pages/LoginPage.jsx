@@ -72,7 +72,7 @@ const LoginPage = () => {
           </h1>
 
           <p className="text-muted mt-2 text-sm">
-            Sign in to continue using Breakdown Assist
+            Sign in to continue using GarageGo
           </p>
         </div>
 
