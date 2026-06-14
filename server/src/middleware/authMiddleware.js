@@ -1,6 +1,6 @@
 import { auth } from "../firebaseAdmin.js";
 
-/* ---------------- TOKEN EXTRACTOR ---------------- */
+
 
 const extractBearerToken = (headerValue = "") => {
 

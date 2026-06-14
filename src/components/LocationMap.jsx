@@ -23,7 +23,7 @@ import {
   getSimulationDurationMs,
 } from "../utils/mechanicTrackingService";
 
-/* ---------- MARKER SETUP ---------- */
+
 
 const defaultIcon = L.icon({
   iconRetinaUrl: markerIcon2x,

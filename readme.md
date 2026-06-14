@@ -1,4 +1,4 @@
-# GarageGo
+#  GarageGo
 
 GarageGo is a full-stack roadside assistance web app that connects vehicle owners with nearby mechanics. Customers can raise a breakdown request, get matched with an available mechanic in their selected area, receive live status updates, and complete the service through OTP verification.
 

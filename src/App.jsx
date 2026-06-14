@@ -11,7 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import RoleSelectionPage from "./pages/RoleSelectionPage";
 
-/* ---------------- PROTECTED ROUTE ---------------- */
+/* ---------------- PROTECTED ROUTE ----------------- */
 
 const ProtectedRoute = ({ children }) => {
 
