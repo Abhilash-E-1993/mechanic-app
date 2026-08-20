@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import LocationMap from "./LocationMap";
 import { estimateEtaMinutesFromLocation } from "../utils/etaService";
+import { expirePendingRequest } from "../services/firestoreService";
 
 const statusStyles = {
   Pending: "badge badge-warning",
@@ -20,35 +21,47 @@ const toMillis = (value) => {
 
 const WaitingBanner = ({ request }) => {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const expiredRef = useRef(false);
 
   useEffect(() => {
+    expiredRef.current = false;
     const start = toMillis(
       request.routingLastAdvancedAt || request.updatedAt || request.createdAt
     );
 
-    const tick = () =>
-      setElapsedSeconds(
-        Math.max(0, Math.floor((Date.now() - start) / 1000))
-      );
+    const tick = () => {
+      const elapsed = Math.max(0, Math.floor((Date.now() - start) / 1000));
+      setElapsedSeconds(elapsed);
+
+      // Auto-expire or advance after 60 seconds
+      if (elapsed >= 60 && !expiredRef.current) {
+        expiredRef.current = true;
+        expirePendingRequest(request.id);
+      }
+    };
 
     tick();
     const intervalId = window.setInterval(tick, 1000);
     return () => window.clearInterval(intervalId);
-  }, [request.id, request.routingLastAdvancedAt, request.updatedAt]);
+  }, [request.id, request.routingLastAdvancedAt, request.updatedAt, request.createdAt]);
 
-  const minutes = Math.floor(elapsedSeconds / 60);
-  const seconds = `${elapsedSeconds % 60}`.padStart(2, "0");
+  const remainingSeconds = Math.max(0, 60 - elapsedSeconds);
+  const remainingFormatted = `0:${remainingSeconds.toString().padStart(2, "0")}`;
 
   return (
     <div className="waiting-banner" role="status">
       <span className="waiting-pulse" aria-hidden="true" />
-      <div>
-        <p className="waiting-banner-title">
-          Waiting for {request.mechanicName || "the mechanic"} to respond...
-        </p>
+      <div className="flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <p className="waiting-banner-title">
+            Waiting for {request.mechanicName || "the mechanic"} to respond...
+          </p>
+          <span className="badge badge-warning text-xs font-mono">
+            {remainingFormatted}
+          </span>
+        </div>
         <p className="waiting-banner-subtitle">
-          {minutes}:{seconds} elapsed. If they don't respond, the request
-          automatically moves to the next nearest mechanic.
+          If no mechanic in your area accepts within 1 minute, the request will automatically close.
         </p>
       </div>
     </div>
@@ -294,6 +307,17 @@ const RequestList = ({
 
             {!forMechanic && request.status === "Pending" && (
               <WaitingBanner request={request} />
+            )}
+
+            {/* CUSTOMER REJECTED / TIMEOUT BANNER */}
+
+            {!forMechanic && request.status === "Rejected" && (
+              <div className="p-3.5 rounded-xl border border-red-500/20 bg-red-500/10 text-sm text-red-300 space-y-1">
+                <p className="font-semibold text-red-200">❌ No Mechanic Found</p>
+                <p className="text-xs text-red-300/90">
+                  {request.rejectionReason || "No mechanics in your area responded within 1 minute. Please retry or choose another hub location."}
+                </p>
+              </div>
             )}
 
             {/* CALL BUTTON */}

@@ -396,3 +396,53 @@ export const verifyCompletionOTP = async (
     "available"
   );
 };
+
+export const expirePendingRequest = async (requestId) => {
+  if (!requestId) return;
+
+  try {
+    const requestDoc = doc(db, "serviceRequests", requestId);
+    const snap = await getDoc(requestDoc);
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+    if (data.status !== "Pending") return;
+
+    const queue = data.mechanicRoutingQueue || [];
+    const currentIndex = data.mechanicRoutingIndex ?? 0;
+    const nextIndex = currentIndex + 1;
+
+    if (queue.length > 0 && nextIndex < queue.length) {
+      const nextMechanic = queue[nextIndex];
+      await updateDoc(requestDoc, {
+        mechanicId: nextMechanic.id,
+        mechanicName: nextMechanic.name,
+        garageName: nextMechanic.garageName || null,
+        mechanicPhoneNumber: nextMechanic.phoneNumber || null,
+        mechanicCity: nextMechanic.city || null,
+        mechanicServiceArea: nextMechanic.serviceArea || null,
+        assignedMechanicLocation: nextMechanic.mechanicBaseLocation || null,
+        currentMechanicEtaMinutes: nextMechanic.estimatedEtaMinutes ?? null,
+        currentMechanicDistanceKm:
+          nextMechanic.distanceKm != null
+            ? Number(nextMechanic.distanceKm.toFixed(2))
+            : null,
+        mechanicRoutingIndex: nextIndex,
+        routingLastAdvancedAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      // No more mechanics available in this area -> mark as Rejected
+      await updateDoc(requestDoc, {
+        status: "Rejected",
+        rejectionReason: "No mechanic available in your area within 1 minute.",
+        completionOTP: null,
+        otpGeneratedAt: null,
+        updatedAt: serverTimestamp(),
+      });
+    }
+  } catch (err) {
+    console.error("Failed to expire/advance request", err);
+  }
+};
+
