@@ -1287,3 +1287,244 @@ h1,h2,h3,h4{
   }
 
 }
+
+/* ---------- LEAFLET STACKING FIX ---------- */
+
+.leaflet-container{
+  z-index:0;
+}
+
+/* ---------- DEMO BANNER ---------- */
+
+.demo-banner{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 18px;
+  border:1px solid rgba(255,210,122,0.22);
+  border-radius:16px;
+  background:rgba(242,163,58,0.08);
+}
+
+.demo-banner-title{
+  font-weight:700;
+  font-size:14px;
+  color:var(--amber-light);
+}
+
+.demo-banner-body{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--text-2);
+}
+
+.demo-banner-dismiss{
+  flex-shrink:0;
+  padding:7px 14px;
+  border:1px solid rgba(255,210,122,0.28);
+  border-radius:999px;
+  color:var(--amber-light);
+  font-size:12px;
+  font-weight:700;
+  transition:all .2s ease;
+}
+
+.demo-banner-dismiss:hover{
+  background:rgba(242,163,58,0.14);
+}
+
+/* ---------- WAITING BANNER ---------- */
+
+.waiting-banner{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid rgba(245,158,11,0.3);
+  background:rgba(245,158,11,0.08);
+}
+
+.waiting-pulse{
+  position:relative;
+  flex-shrink:0;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background:#FCD34D;
+}
+
+.waiting-pulse::after{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:2px solid rgba(252,211,77,0.5);
+  animation:waitingPulse 1.6s ease-out infinite;
+}
+
+@keyframes waitingPulse{
+  0%{ transform:scale(0.6); opacity:1; }
+  100%{ transform:scale(1.5); opacity:0; }
+}
+
+.waiting-banner-title{
+  font-weight:700;
+  font-size:14px;
+  color:#FCD34D;
+}
+
+.waiting-banner-subtitle{
+  margin-top:2px;
+  font-size:12px;
+  color:var(--text-2);
+}
+
+/* ---------- HUB PICKER ---------- */
+
+.hub-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:10px;
+}
+
+.hub-card{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  text-align:left;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  transition:all .2s ease;
+}
+
+.hub-card:hover{
+  border-color:var(--border-2);
+  transform:translateY(-1px);
+}
+
+.hub-card-active{
+  border-color:var(--amber);
+  background:rgba(242,163,58,0.10);
+}
+
+.hub-card-name{
+  font-weight:700;
+  font-size:14px;
+  color:var(--text);
+}
+
+.hub-card-area{
+  font-size:12px;
+  color:var(--text-3);
+}
+
+.hub-map-preview{
+  margin-top:16px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.hub-map-caption{
+  padding:10px 14px;
+  font-size:12px;
+  color:var(--text-2);
+  border-top:1px solid var(--border);
+}
+
+/* ---------- HOW IT WORKS (LANDING) ---------- */
+
+.how-it-works{
+  padding:8px 24px 48px;
+}
+
+.steps-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:14px;
+}
+
+.step-card{
+  padding:20px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(16,19,27,0.84);
+}
+
+.step-number{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:999px;
+  background:rgba(242,163,58,0.14);
+  color:var(--amber-light);
+  font-weight:800;
+  font-size:13px;
+}
+
+.step-title{
+  margin-top:12px;
+  font-weight:700;
+  font-size:15px;
+}
+
+.step-copy{
+  margin-top:6px;
+  font-size:13px;
+  color:var(--text-2);
+}
+
+.demo-note{
+  margin:28px auto 0;
+  max-width:640px;
+  text-align:center;
+  font-size:13px;
+  color:var(--text-2);
+  padding:12px 18px;
+  border:1px dashed rgba(255,210,122,0.28);
+  border-radius:14px;
+}
+
+/* ---------- DEMO LOGIN PANEL ---------- */
+
+.demo-login-panel{
+  margin-top:20px;
+  padding:14px 16px;
+  border:1px dashed rgba(255,210,122,0.28);
+  border-radius:14px;
+  background:rgba(242,163,58,0.05);
+}
+
+.demo-login-title{
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  color:var(--amber-light);
+}
+
+.demo-login-copy{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--text-2);
+}
+
+.demo-login-actions{
+  margin-top:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+/* ---------- TOAST TONES ---------- */
+
+.toast-success{ border-left:3px solid var(--success); }
+.toast-warning{ border-left:3px solid #F59E0B; }
+.toast-danger{ border-left:3px solid var(--danger); }
+.toast-info{ border-left:3px solid var(--amber); }
+

@@ -13,11 +13,6 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { normalizeAreaName } from "../constants/appConstants";
-import {
-  getMechanicAreaLocation,
-  getMechanicBaseLocation,
-} from "../utils/mechanicLocationService";
 
 const generateCompletionOTP = () =>
   `${Math.floor(1000 + Math.random() * 9000)}`;
@@ -124,18 +119,12 @@ export const getUserProfile = async (uid) => {
     : null;
 };
 
-export const getAvailableMechanicsByArea = async (
-  city,
-  area
-) => {
+export const getAvailableMechanics = async () => {
   const usersRef = collection(db, "users");
-  const normalizedArea = normalizeAreaName(city, area);
 
   const mechanicsQuery = query(
     usersRef,
     where("role", "==", "mechanic"),
-    where("city", "==", city),
-    where("serviceArea", "==", normalizedArea),
     where("availabilityStatus", "==", "available")
   );
 
@@ -147,13 +136,7 @@ export const getAvailableMechanicsByArea = async (
       ...item.data(),
     };
 
-    const mechanicBaseLocation =
-      mechanic.mechanicBaseLocation ||
-      getMechanicBaseLocation(
-        mechanic.city,
-        mechanic.serviceArea,
-        item.id
-      );
+    const mechanicBaseLocation = mechanic.mechanicBaseLocation || null;
 
     return {
       ...mechanic,
@@ -238,6 +221,32 @@ export const getRequestsForMechanic = async (mechanicId) => {
   }));
 };
 
+export const subscribeToMechanicRequests = (
+  mechanicId,
+  onUpdate,
+  onError
+) => {
+  const requestRef = collection(db, "serviceRequests");
+
+  const requestQuery = query(
+    requestRef,
+    where("mechanicId", "==", mechanicId)
+  );
+
+  return onSnapshot(
+    requestQuery,
+    (snapshot) => {
+      onUpdate(
+        snapshot.docs.map((item) => ({
+          id: item.id,
+          ...item.data(),
+        }))
+      );
+    },
+    onError
+  );
+};
+
 export const hasActiveRequestBetweenUsers = async (
   customerId,
   mechanicId
@@ -286,19 +295,21 @@ export const updateRequestStatus = async (requestId, status, actorId) => {
     updatedAt: serverTimestamp(),
   };
 
-  // When mechanic ACCEPTS request → generate mechanic location
+  // When mechanic ACCEPTS request → attach the mechanic's fixed garage location
   if (status === "Accepted") {
     await ensureMechanicCanAcceptRequest(
       requestId,
       requestData.mechanicId
     );
 
-    const mechanicLocation =
-      requestData.assignedMechanicLocation ||
-      getMechanicAreaLocation(
-        requestData.mechanicCity,
-        requestData.mechanicServiceArea
+    let mechanicLocation = requestData.assignedMechanicLocation || null;
+
+    if (!mechanicLocation) {
+      const mechanicSnap = await getDoc(
+        doc(db, "users", requestData.mechanicId)
       );
+      mechanicLocation = mechanicSnap.data()?.mechanicBaseLocation || null;
+    }
 
     updatePayload.mechanicLocation = mechanicLocation;
 

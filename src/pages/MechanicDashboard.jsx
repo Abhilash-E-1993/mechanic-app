@@ -6,8 +6,8 @@ import RequestList from "../components/RequestList";
 import { useAuth } from "../context/AuthContext";
 
 import {
-  getRequestsForMechanic,
   requestCompletionOTP,
+  subscribeToMechanicRequests,
   updateRequestStatus,
   verifyCompletionOTP,
 } from "../services/firestoreService";
@@ -16,6 +16,8 @@ import {
   advanceRequestToNextMechanic,
   notifyCustomerAboutAcceptedRequest,
 } from "../services/notificationService";
+
+const DEMO_TIP_KEY = "garagegoMechanicDemoTipDismissed";
 
 const MechanicDashboard = () => {
 
@@ -28,57 +30,49 @@ const MechanicDashboard = () => {
   const [savingStatusMessage, setSavingStatusMessage] = useState("");
 
   const [error, setError] = useState("");
-  const [notificationWarning, setNotificationWarning] = useState("");
 
-  const loadRequests = async () => {
+  const [demoTipDismissed, setDemoTipDismissed] = useState(
+    () => window.localStorage.getItem(DEMO_TIP_KEY) === "1"
+  );
 
-    if (!currentUser?.uid) return;
-
-    setLoading(true);
-
-    try {
-
-      const requestList = await getRequestsForMechanic(
-        currentUser.uid
-      );
-
-      // sort requests
-      const sorted = (requestList || []).sort((a, b) => {
-
-        const priority = {
-          Pending: 1,
-          Accepted: 2,
-          Completed: 3,
-          Cancelled: 4,
-        };
-
-        return priority[a.status] - priority[b.status];
-
-      });
-
-      setRequests(sorted);
-
-    } catch {
-
-      setError("Unable to load requests.");
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
+  /* ---------- REALTIME REQUEST SUBSCRIPTION ---------- */
 
   useEffect(() => {
 
-    loadRequests();
+    if (!currentUser?.uid) return undefined;
 
-  }, [currentUser]);
+    setLoading(true);
 
-  const mechanicBusy = requests.some(
-    (req) => req.status === "Accepted"
-  );
+    const unsubscribe = subscribeToMechanicRequests(
+      currentUser.uid,
+      (requestList) => {
+        const sorted = (requestList || []).sort((a, b) => {
+          const priority = {
+            Pending: 1,
+            Accepted: 2,
+            Completed: 3,
+            Rejected: 4,
+            Cancelled: 5,
+          };
+          return (priority[a.status] || 99) - (priority[b.status] || 99);
+        });
+
+        setRequests(sorted);
+        setLoading(false);
+      },
+      () => {
+        setError("Unable to load requests in real time.");
+        setLoading(false);
+      }
+    );
+
+    return unsubscribe;
+
+  }, [currentUser?.uid]);
+
+  const mechanicBusy = requests.some((req) => req.status === "Accepted");
+
+  /* ---------- ACCEPT / REJECT ---------- */
 
   const handleRequestAction = async (requestId, nextStatus) => {
 
@@ -87,64 +81,43 @@ const MechanicDashboard = () => {
     try {
 
       if (nextStatus === "Accepted" && mechanicBusy) {
-
-        setError(
-          "You already have an active job. Complete it first."
-        );
-
+        setError("You already have an active job. Complete it first.");
         return;
-
       }
 
       setSavingStatus(true);
       setError("");
-      setNotificationWarning("");
       setSavingStatusMessage("Updating the request status...");
 
       if (nextStatus === "Rejected") {
-        setSavingStatusMessage("Offering the request to the next nearest mechanic...");
+        setSavingStatusMessage(
+          "Offering the request to the next nearest mechanic..."
+        );
 
         await advanceRequestToNextMechanic({
           currentUser,
           requestId,
         });
       } else {
-        await updateRequestStatus(
-          requestId,
-          nextStatus,
-          currentUser.uid
-        );
+        await updateRequestStatus(requestId, nextStatus, currentUser.uid);
       }
 
       if (nextStatus === "Accepted") {
+        setSavingStatusMessage("Notifying the customer that you are on the way...");
 
-        try {
-          setSavingStatusMessage("Notifying the customer that you are on the way...");
-
-          await notifyCustomerAboutAcceptedRequest({
-            currentUser,
-            requestId,
-          });
-
-        } catch {
-
-          setNotificationWarning(
-            "Request accepted but customer notification failed."
-          );
-
-        }
-
+        // Fire-and-forget: realtime listeners keep both dashboards in sync
+        // even if the notification backend is offline.
+        notifyCustomerAboutAcceptedRequest({
+          currentUser,
+          requestId,
+        }).catch(() => {});
       }
 
       await refreshProfile(currentUser.uid);
 
-      await loadRequests();
-
     } catch (err) {
 
-      setError(
-        err.message || "Unable to update request status."
-      );
+      setError(err.message || "Unable to update request status.");
 
     } finally {
 
@@ -155,35 +128,23 @@ const MechanicDashboard = () => {
 
   };
 
+  /* ---------- OTP ---------- */
+
   const handleGenerateOtp = async (requestId) => {
 
     if (savingStatus) return;
 
+    setSavingStatus(true);
+    setError("");
+    setSavingStatusMessage("Generating the completion OTP...");
+
     try {
-
-      setSavingStatus(true);
-      setError("");
-      setSavingStatusMessage("Generating secure completion OTP...");
-
-      await requestCompletionOTP(
-        requestId,
-        currentUser.uid
-      );
-
-      await loadRequests();
-
+      await requestCompletionOTP(requestId, currentUser.uid);
     } catch (err) {
-
-      setError(
-        err.message ||
-        "Unable to generate completion OTP."
-      );
-
+      setError(err.message || "Unable to generate completion OTP.");
     } finally {
-
       setSavingStatus(false);
       setSavingStatusMessage("");
-
     }
 
   };
@@ -198,23 +159,13 @@ const MechanicDashboard = () => {
 
     try {
 
-      await verifyCompletionOTP(
-        requestId,
-        currentUser.uid,
-        otp
-      );
+      await verifyCompletionOTP(requestId, currentUser.uid, otp);
 
       await refreshProfile(currentUser.uid);
 
-      await loadRequests();
-
     } catch (err) {
 
-      setError(
-        err.message ||
-        "Invalid OTP. Please ask the customer again."
-      );
-
+      setError(err.message || "Invalid OTP. Please ask the customer again.");
       throw err;
 
     } finally {
@@ -226,19 +177,44 @@ const MechanicDashboard = () => {
 
   };
 
-  if (loading) {
+  /* ---------- RENDER ---------- */
 
+  if (loading) {
     return (
       <div className="flex justify-center pt-20">
         <Loader label="Loading mechanic dashboard..." />
       </div>
     );
-
   }
 
   return (
 
     <div className="space-y-8">
+
+      {/* DEMO TIP */}
+
+      {!demoTipDismissed && (
+        <div className="demo-banner">
+          <div>
+            <p className="demo-banner-title">Mechanic view</p>
+            <p className="demo-banner-body">
+              This dashboard updates in real time. To demo the full flow, keep
+              this tab open, then log in as a customer in another browser or
+              incognito window and send a request to this mechanic.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="demo-banner-dismiss"
+            onClick={() => {
+              setDemoTipDismissed(true);
+              window.localStorage.setItem(DEMO_TIP_KEY, "1");
+            }}
+          >
+            Got it
+          </button>
+        </div>
+      )}
 
       {/* DASHBOARD HEADER */}
 
@@ -249,10 +225,10 @@ const MechanicDashboard = () => {
         </h2>
 
         <p className="text-muted text-sm mt-1">
-          Manage incoming breakdown service requests.
+          Incoming breakdown requests appear here instantly — no refresh needed.
         </p>
 
-        <div className="mt-5 flex items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
 
           <span className="text-sm text-muted">
             Current Status
@@ -268,6 +244,13 @@ const MechanicDashboard = () => {
             {profile?.availabilityStatus || "available"}
           </span>
 
+          {profile?.hubName && (
+            <span className="badge">
+              {profile.hubName}
+              {profile.serviceArea ? ` · ${profile.serviceArea}` : ""}
+            </span>
+          )}
+
         </div>
 
       </section>
@@ -280,23 +263,12 @@ const MechanicDashboard = () => {
           label="Working on it"
           detail={savingStatusMessage || "Updating request status..."}
         />
-
       )}
 
       {error && (
-
         <div className="badge badge-danger">
           {error}
         </div>
-
-      )}
-
-      {notificationWarning && (
-
-        <div className="badge badge-warning">
-          {notificationWarning}
-        </div>
-
       )}
 
       {/* REQUESTS */}
@@ -308,13 +280,11 @@ const MechanicDashboard = () => {
         </h3>
 
         {requests.length === 0 ? (
-
-          <div className="text-muted text-center">
-            No service requests yet.
+          <div className="text-muted text-center py-6">
+            No service requests yet. When a customer nearby requests help, it
+            shows up here in real time.
           </div>
-
         ) : (
-
           <RequestList
             requests={requests}
             forMechanic
@@ -323,7 +293,6 @@ const MechanicDashboard = () => {
             onGenerateOtp={handleGenerateOtp}
             onVerifyOtp={handleVerifyOtp}
           />
-
         )}
 
       </section>
@@ -335,3 +304,4 @@ const MechanicDashboard = () => {
 };
 
 export default MechanicDashboard;
+

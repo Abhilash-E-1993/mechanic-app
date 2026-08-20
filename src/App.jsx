@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Loader from "./components/Loader";
 import PushNotificationManager from "./components/PushNotificationManager";
+import NotificationCenter from "./components/NotificationCenter";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -81,6 +82,8 @@ const AppLayout = () => {
     <div className="page-wrapper">
 
       <PushNotificationManager />
+
+      <NotificationCenter />
 
       {/* NAVBAR */}
 

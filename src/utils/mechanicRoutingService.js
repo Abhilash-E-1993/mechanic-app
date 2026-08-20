@@ -2,7 +2,6 @@ import {
   calculateDistanceKm,
   estimateEtaMinutesFromLocation,
 } from "./etaService";
-import { getMechanicBaseLocation } from "./mechanicLocationService";
 
 const supportsRequestedService = (mechanic, serviceType) => {
   if (!serviceType) {
@@ -16,6 +15,7 @@ const supportsRequestedService = (mechanic, serviceType) => {
   return mechanic.services.includes(serviceType);
 };
 
+// Mechanics have fixed, real garage hub locations chosen during onboarding.
 export const getMechanicCoordinates = (mechanic) => {
   if (mechanic?.mechanicBaseLocation?.lat && mechanic?.mechanicBaseLocation?.lng) {
     return mechanic.mechanicBaseLocation;
@@ -23,20 +23,20 @@ export const getMechanicCoordinates = (mechanic) => {
 
   if (mechanic?.latitude != null && mechanic?.longitude != null) {
     return {
-      addressLine1: mechanic?.serviceArea
-        ? `${mechanic.serviceArea} Service Point`
-        : "Mechanic Service Point",
-      addressLine2: mechanic?.city || "",
+      addressLine1:
+        mechanic?.hubName ||
+        (mechanic?.serviceArea
+          ? `${mechanic.serviceArea} Garage`
+          : "Mechanic Garage"),
+      addressLine2: [mechanic?.serviceArea, mechanic?.city]
+        .filter(Boolean)
+        .join(", "),
       lat: Number(mechanic.latitude),
       lng: Number(mechanic.longitude),
     };
   }
 
-  return getMechanicBaseLocation(
-    mechanic?.city,
-    mechanic?.serviceArea,
-    mechanic?.id || mechanic?.mechanicId || mechanic?.name || ""
-  );
+  return null;
 };
 
 export const rankMechanicsByDistance = ({
@@ -48,11 +48,12 @@ export const rankMechanicsByDistance = ({
     .filter((mechanic) => supportsRequestedService(mechanic, serviceType))
     .map((mechanic) => {
       const mechanicLocation = getMechanicCoordinates(mechanic);
-      const distanceKm = calculateDistanceKm(customerLocation, mechanicLocation);
-      const estimatedEtaMinutes = estimateEtaMinutesFromLocation(
-        customerLocation,
-        mechanicLocation
-      );
+      const distanceKm = mechanicLocation
+        ? calculateDistanceKm(customerLocation, mechanicLocation)
+        : null;
+      const estimatedEtaMinutes = mechanicLocation
+        ? estimateEtaMinutesFromLocation(customerLocation, mechanicLocation)
+        : null;
 
       return {
         ...mechanic,
@@ -85,6 +86,7 @@ export const createMechanicRoutingQueue = (rankedMechanics = []) =>
     phoneNumber: mechanic.phoneNumber || "",
     city: mechanic.city || "",
     serviceArea: mechanic.serviceArea || "",
+    hubName: mechanic.hubName || "",
     mechanicBaseLocation: mechanic.mechanicBaseLocation || null,
     latitude:
       mechanic.mechanicBaseLocation?.lat ??

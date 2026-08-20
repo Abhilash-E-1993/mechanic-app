@@ -1,15 +1,58 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LocationMap from "./LocationMap";
-import {
-  estimateEtaMinutes,
-  estimateEtaMinutesFromLocation,
-} from "../utils/etaService";
+import { estimateEtaMinutesFromLocation } from "../utils/etaService";
 
 const statusStyles = {
   Pending: "badge badge-warning",
   Accepted: "badge badge-success",
   Rejected: "badge badge-danger",
   Completed: "badge",
+};
+
+/* ---------- WAITING BANNER (CUSTOMER, PENDING) ---------- */
+
+const toMillis = (value) => {
+  if (!value) return Date.now();
+  if (typeof value?.toDate === "function") return value.toDate().getTime();
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? Date.now() : parsed.getTime();
+};
+
+const WaitingBanner = ({ request }) => {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+  useEffect(() => {
+    const start = toMillis(
+      request.routingLastAdvancedAt || request.updatedAt || request.createdAt
+    );
+
+    const tick = () =>
+      setElapsedSeconds(
+        Math.max(0, Math.floor((Date.now() - start) / 1000))
+      );
+
+    tick();
+    const intervalId = window.setInterval(tick, 1000);
+    return () => window.clearInterval(intervalId);
+  }, [request.id, request.routingLastAdvancedAt, request.updatedAt]);
+
+  const minutes = Math.floor(elapsedSeconds / 60);
+  const seconds = `${elapsedSeconds % 60}`.padStart(2, "0");
+
+  return (
+    <div className="waiting-banner" role="status">
+      <span className="waiting-pulse" aria-hidden="true" />
+      <div>
+        <p className="waiting-banner-title">
+          Waiting for {request.mechanicName || "the mechanic"} to respond...
+        </p>
+        <p className="waiting-banner-subtitle">
+          {minutes}:{seconds} elapsed. If they don't respond, the request
+          automatically moves to the next nearest mechanic.
+        </p>
+      </div>
+    </div>
+  );
 };
 
 const RequestList = ({
@@ -25,14 +68,19 @@ const RequestList = ({
   const [otpErrors, setOtpErrors] = useState({});
   const [copiedOtp, setCopiedOtp] = useState(null);
 
-  const shouldShowActiveLocation = (request) =>
-    forMechanic && request.status === "Accepted" && request.customerLocation;
+  const getMapMechanicLocation = (request) =>
+    request.mechanicLocation || request.assignedMechanicLocation || null;
+
+  const shouldShowMechanicMap = (request) =>
+    forMechanic &&
+    ["Pending", "Accepted"].includes(request.status) &&
+    request.customerLocation;
 
   const shouldShowCustomerTracking = (request) =>
     !forMechanic &&
-    request.status === "Accepted" &&
+    ["Pending", "Accepted"].includes(request.status) &&
     request.customerLocation &&
-    request.mechanicLocation;
+    getMapMechanicLocation(request);
 
   /* ---------- COPY OTP ---------- */
 
@@ -158,19 +206,17 @@ const RequestList = ({
 
       {requests.map((request) => {
 
-        const etaMinutes =
-          request.status === "Accepted"
-            ? request.mechanicLocation
+        const mapMechanicLocation = getMapMechanicLocation(request);
+
+        const etaMinutes = ["Pending", "Accepted"].includes(request.status)
+          ? request.currentMechanicEtaMinutes ??
+            (mapMechanicLocation
               ? estimateEtaMinutesFromLocation(
                   request.customerLocation,
-                  request.mechanicLocation
+                  mapMechanicLocation
                 )
-              : estimateEtaMinutes(
-                  request.customerLocation,
-                  request.mechanicCity,
-                  request.mechanicServiceArea
-                )
-            : null;
+              : null)
+          : null;
 
         return (
 
@@ -239,6 +285,12 @@ const RequestList = ({
 
               )}
 
+            {/* WAITING BANNER (CUSTOMER, PENDING) */}
+
+            {!forMechanic && request.status === "Pending" && (
+              <WaitingBanner request={request} />
+            )}
+
             {/* CALL BUTTON */}
 
             {!forMechanic &&
@@ -259,10 +311,14 @@ const RequestList = ({
             {shouldShowCustomerTracking(request) && (
               <LocationMap
                 customerLocation={request.customerLocation}
-                mechanicLocation={request.mechanicLocation}
+                mechanicLocation={getMapMechanicLocation(request)}
                 requestStatus={request.status}
                 completionOTP={request.completionOTP}
-                simulateMechanicMovement
+                heading={
+                  request.status === "Pending"
+                    ? "Assigned Mechanic Location"
+                    : "Mechanic Route Overview"
+                }
               />
             )}
 
@@ -420,30 +476,35 @@ const RequestList = ({
 
               )}
 
-            {/* LIVE LOCATION */}
+            {/* CUSTOMER LOCATION MAP (MECHANIC VIEW) */}
 
-            {shouldShowActiveLocation(request) && (
+            {shouldShowMechanicMap(request) && (
 
               <div className="space-y-3">
 
                 <LocationMap
                   customerLocation={request.customerLocation}
-                  mechanicLocation={request.mechanicLocation}
+                  mechanicLocation={getMapMechanicLocation(request)}
                   requestStatus={request.status}
                   completionOTP={request.completionOTP}
+                  heading="Customer Location"
                 />
 
-                <button
-                  onClick={() =>
-                    openNavigation(
-                      request.customerLocation,
-                      request.mechanicLocation
-                    )
-                  }
-                  className="btn-secondary"
-                >
-                  Navigate to Customer
-                </button>
+                {request.status === "Accepted" && (
+
+                  <button
+                    onClick={() =>
+                      openNavigation(
+                        request.customerLocation,
+                        getMapMechanicLocation(request)
+                      )
+                    }
+                    className="btn-secondary"
+                  >
+                    Navigate to Customer
+                  </button>
+
+                )}
 
               </div>
 

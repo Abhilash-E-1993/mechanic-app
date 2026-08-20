@@ -4,6 +4,36 @@ const NOTIFICATION_API_BASE_URL = (
 const REQUEST_TIMEOUT_MS = 7000;
 const RETRY_DELAY_MS = 900;
 const MAX_RETRIES = 2;
+const HEALTH_CACHE_MS = 30000;
+
+/* Backend health is cached so the UI never spams a dead server.
+   When the backend is offline, push is skipped silently — Firestore
+   realtime listeners still keep every screen in sync. */
+let backendHealthCache = { checkedAt: 0, healthy: false };
+
+export const checkNotificationBackendHealth = async () => {
+  const now = Date.now();
+
+  if (now - backendHealthCache.checkedAt < HEALTH_CACHE_MS) {
+    return backendHealthCache.healthy;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 3000);
+
+    const response = await fetch(`${NOTIFICATION_API_BASE_URL}/api/health`, {
+      signal: controller.signal,
+    });
+
+    window.clearTimeout(timeoutId);
+    backendHealthCache = { checkedAt: now, healthy: response.ok };
+  } catch {
+    backendHealthCache = { checkedAt: now, healthy: false };
+  }
+
+  return backendHealthCache.healthy;
+};
 
 const wait = (ms) =>
   new Promise((resolve) => {
@@ -34,6 +64,19 @@ const postNotificationEvent = async ({
       success: false,
       skipped: true,
       reason: "missing-user-or-request",
+    };
+  }
+
+  const backendHealthy = await checkNotificationBackendHealth();
+
+  if (!backendHealthy) {
+    console.info(
+      "[notifications] Backend offline — skipping push. In-app realtime updates remain active."
+    );
+    return {
+      success: false,
+      skipped: true,
+      reason: "backend-offline",
     };
   }
 

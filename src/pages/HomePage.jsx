@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 
 import Loader from "../components/Loader";
 import { useAuth } from "../context/AuthContext";
-import { isOnboardingPending } from "../utils/onboardingSession";
 
 import CustomerDashboard from "./CustomerDashboard";
 import MechanicDashboard from "./MechanicDashboard";
@@ -73,6 +72,50 @@ const HomePage = () => {
             </div>
           </div>
         </section>
+
+        {/* HOW IT WORKS */}
+
+        <section className="how-it-works">
+          <h2 className="text-xl font-semibold text-center">
+            How GarageGo works
+          </h2>
+
+          <div className="steps-grid mt-6">
+            <div className="step-card">
+              <span className="step-number">1</span>
+              <p className="step-title">Share your location</p>
+              <p className="step-copy">
+                We detect your GPS position and rank nearby mechanics by real
+                distance and ETA.
+              </p>
+            </div>
+
+            <div className="step-card">
+              <span className="step-number">2</span>
+              <p className="step-title">Request help</p>
+              <p className="step-copy">
+                Pick your problem — the mechanic you choose is alerted first,
+                with backup mechanics queued automatically.
+              </p>
+            </div>
+
+            <div className="step-card">
+              <span className="step-number">3</span>
+              <p className="step-title">Track and complete</p>
+              <p className="step-copy">
+                Follow the request status live on the map and close the job
+                with a secure OTP.
+              </p>
+            </div>
+          </div>
+
+          <p className="demo-note">
+            Demo note: GarageGo has two roles. Log in as a{" "}
+            <strong>customer</strong> to send a request, and as a{" "}
+            <strong>mechanic</strong> in another browser or incognito window
+            to accept it in real time.
+          </p>
+        </section>
       </div>
     );
   }
@@ -86,30 +129,6 @@ const HomePage = () => {
   }
 
   if (!profile?.role) {
-    if (!isOnboardingPending(currentUser?.uid)) {
-      return (
-        <div className="onboarding-shell">
-          <div className="setup-panel text-center max-w-md">
-            <h2 className="text-xl font-semibold">
-              Preparing Your Dashboard
-            </h2>
-
-            <p className="text-muted text-sm mt-2">
-              Your account is signed in. We are syncing your role details in the background.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="btn-primary mt-6"
-            >
-              Reload Dashboard
-            </button>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="onboarding-shell">
         <div className="setup-panel text-center max-w-md">
@@ -118,7 +137,8 @@ const HomePage = () => {
           </h2>
 
           <p className="text-muted text-sm mt-2">
-            Please select your role to continue.
+            Choose whether you need help (customer) or provide help (mechanic)
+            to unlock your dashboard.
           </p>
 
           <Link

@@ -1,5 +1,3 @@
-
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -36,7 +34,10 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read: if isOwnUserDoc(userId);
+      // Own profile always readable. Signed-in users can also read mechanic
+      // profiles so customers can discover nearby mechanics on the map.
+      allow read: if isOwnUserDoc(userId) ||
+        (isSignedIn() && resource.data.role == "mechanic");
       allow create, update: if isOwnUserDoc(userId);
     }
 

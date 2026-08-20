@@ -3,6 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { markOnboardingPending } from "../utils/onboardingSession";
 
+const DEMO_ACCOUNTS = {
+  customer: { email: "customer@garagego.app", password: "GarageGo@123" },
+  mechanic: { email: "mechanic@garagego.app", password: "GarageGo@123" },
+};
+
 const LoginPage = () => {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -40,6 +45,14 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fillDemoAccount = (account) => {
+    setError("");
+    setFormData({
+      email: account.email,
+      password: account.password,
+    });
   };
 
   const handleGoogleLogin = async () => {
@@ -141,6 +154,35 @@ const LoginPage = () => {
         >
           Continue with Google
         </button>
+
+        {/* DEMO ACCOUNTS */}
+
+        <div className="demo-login-panel">
+          <p className="demo-login-title">Demo accounts</p>
+          <p className="demo-login-copy">
+            Reviewing GarageGo? One-click fill below. Use the customer account
+            in this browser and the mechanic account in an incognito window to
+            see the live two-role flow.
+          </p>
+
+          <div className="demo-login-actions">
+            <button
+              type="button"
+              className="btn-secondary text-sm"
+              onClick={() => fillDemoAccount(DEMO_ACCOUNTS.customer)}
+            >
+              Fill Demo Customer
+            </button>
+
+            <button
+              type="button"
+              className="btn-secondary text-sm"
+              onClick={() => fillDemoAccount(DEMO_ACCOUNTS.mechanic)}
+            >
+              Fill Demo Mechanic
+            </button>
+          </div>
+        </div>
 
         {error && (
           <div className="mt-5 badge badge-danger">

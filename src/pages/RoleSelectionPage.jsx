@@ -4,16 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 import {
-  AREAS,
   CITY_OPTIONS,
   DEFAULT_CITY,
   SERVICE_TYPES,
-  getAreasForCity,
-  normalizeAreaName,
 } from "../constants/appConstants";
+import { getHubsForCity } from "../constants/garageHubs";
 
 import { createOrUpdateUserProfile } from "../services/firestoreService";
-import { getMechanicBaseLocation } from "../utils/mechanicLocationService";
+import HubPreviewMap from "../components/HubPreviewMap";
 
 const RoleSelectionPage = () => {
 
@@ -27,7 +25,7 @@ const RoleSelectionPage = () => {
   const [role, setRole] = useState("customer");
 
   const [city, setCity] = useState(DEFAULT_CITY);
-  const [serviceArea, setServiceArea] = useState(AREAS[0]);
+  const [hubId, setHubId] = useState("");
 
   const [garageName, setGarageName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -35,7 +33,9 @@ const RoleSelectionPage = () => {
 
   const [services, setServices] = useState([]);
 
-  const areaOptions = getAreasForCity(city);
+  const hubOptions = getHubsForCity(city);
+  const selectedHub =
+    hubOptions.find((hub) => hub.id === hubId) || null;
 
   const isLoading = loading || profileLoading;
 
@@ -70,10 +70,8 @@ const RoleSelectionPage = () => {
 
   const handleCityChange = (nextCity) => {
 
-    const nextAreas = getAreasForCity(nextCity);
-
     setCity(nextCity);
-    setServiceArea(nextAreas[0]);
+    setHubId("");
 
   };
 
@@ -91,6 +89,12 @@ const RoleSelectionPage = () => {
     try {
 
       if (role === "mechanic") {
+
+        if (!selectedHub) {
+          setError("Please choose your garage location hub.");
+          setSaving(false);
+          return;
+        }
 
         if (!garageName.trim()) {
           setError("Garage name required.");
@@ -114,27 +118,25 @@ const RoleSelectionPage = () => {
 
       await createOrUpdateUserProfile(currentUser.uid, {
         ...(role === "mechanic"
-          ? (() => {
-              const normalizedArea = normalizeAreaName(city, serviceArea);
-              const mechanicBaseLocation = getMechanicBaseLocation(
-                city,
-                normalizedArea,
-                currentUser.uid
-              );
-
-              return {
-                city,
-                serviceArea: normalizedArea,
-                garageName,
-                phoneNumber,
-                experienceYears: Number(experienceYears),
-                services,
-                availabilityStatus: "available",
-                mechanicBaseLocation,
-                latitude: mechanicBaseLocation?.lat ?? null,
-                longitude: mechanicBaseLocation?.lng ?? null,
-              };
-            })()
+          ? {
+              city,
+              serviceArea: selectedHub.area,
+              hubId: selectedHub.id,
+              hubName: selectedHub.name,
+              garageName,
+              phoneNumber,
+              experienceYears: Number(experienceYears),
+              services,
+              availabilityStatus: "available",
+              mechanicBaseLocation: {
+                addressLine1: selectedHub.name,
+                addressLine2: `${selectedHub.area}, ${city}`,
+                lat: selectedHub.lat,
+                lng: selectedHub.lng,
+              },
+              latitude: selectedHub.lat,
+              longitude: selectedHub.lng,
+            }
           : {}),
 
         name: profile?.name || currentUser.displayName || "User",
@@ -285,22 +287,42 @@ const RoleSelectionPage = () => {
                 </select>
               </div>
 
-              {/* AREA */}
+              {/* GARAGE LOCATION HUB */}
 
-              <div>
-                <label className="input-label">
-                  Service Area
-                </label>
+              <div className="mechanic-services-field">
 
-                <select
-                  value={serviceArea}
-                  onChange={(e) => setServiceArea(e.target.value)}
-                  className="input"
-                >
-                  {areaOptions.map((area) => (
-                    <option key={area}>{area}</option>
+                <p className="input-label mb-3">
+                  Garage Location — pick the hub nearest to your garage
+                </p>
+
+                <div className="hub-grid">
+
+                  {hubOptions.map((hub) => (
+
+                    <button
+                      key={hub.id}
+                      type="button"
+                      onClick={() => setHubId(hub.id)}
+                      className={`hub-card ${
+                        hubId === hub.id ? "hub-card-active" : ""
+                      }`}
+                    >
+                      <span className="hub-card-name">
+                        {hub.name}
+                      </span>
+                      <span className="hub-card-area">
+                        {hub.area}
+                      </span>
+                    </button>
+
                   ))}
-                </select>
+
+                </div>
+
+                {selectedHub && (
+                  <HubPreviewMap hub={selectedHub} />
+                )}
+
               </div>
 
               {/* GARAGE */}
