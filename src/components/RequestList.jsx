@@ -228,19 +228,24 @@ const RequestList = ({
 
               <div>
 
-                <p className="font-semibold">
-                  {request.serviceType}
+                <p className="font-semibold text-base flex items-center gap-2">
+                  <span>{request.serviceType}</span>
                 </p>
 
-                <p className="text-muted text-sm">
-                  {request.area}
-                  {request.city ? `, ${request.city}` : ""}
+                <p className="text-sm text-[var(--text)] mt-0.5 flex flex-wrap items-center gap-1.5">
+                  <span className="text-amber">📍</span>
+                  <span>{request.customerLocation?.address || request.area}</span>
+                  {request.customerLocation?.lat && request.customerLocation?.lng && (
+                    <span className="badge text-[11px] font-mono !py-0.5 !px-2">
+                      {request.customerLocation.lat.toFixed(4)}° N, {request.customerLocation.lng.toFixed(4)}° E
+                    </span>
+                  )}
                 </p>
 
-                <p className="text-muted text-sm mt-1">
+                <p className="text-muted text-xs mt-1">
                   {forMechanic
                     ? `Customer: ${request.customerName}`
-                    : `Mechanic: ${request.mechanicName}`}
+                    : `Mechanic: ${request.mechanicName} (${request.garageName || 'Garage'})`}
                 </p>
 
               </div>

@@ -24,7 +24,11 @@ import {
 
 import { notifyMechanicAboutNewRequest } from "../services/notificationService";
 
-import { getCurrentLocation } from "../utils/locationService";
+import {
+  getCurrentLocation,
+  formatCoordinates,
+  reverseGeocode,
+} from "../utils/locationService";
 import {
   createMechanicRoutingQueue,
   rankMechanicsByDistance,
@@ -85,14 +89,21 @@ const CustomerDashboard = () => {
       return;
     }
 
-    const nearestHub = findNearestHub(location);
+    // Accurately reverse geocode the customer GPS pinpoint
+    const geoResult = await reverseGeocode(location.lat, location.lng);
+    const coordsFormatted = formatCoordinates(location.lat, location.lng);
+    const resolvedAddress = geoResult?.shortAddress || coordsFormatted;
 
-    setCustomerLocation(location);
-    setLocationLabel(
-      nearestHub
-        ? `Near ${nearestHub.area}, ${nearestHub.city}`
-        : "Live GPS location"
-    );
+    const enrichedLocation = {
+      ...location,
+      address: resolvedAddress,
+      fullAddress: geoResult?.fullAddress || resolvedAddress,
+      formattedCoords: coordsFormatted,
+      isFallback: false,
+    };
+
+    setCustomerLocation(enrichedLocation);
+    setLocationLabel(resolvedAddress);
     setLocationStatus("ready");
   }, []);
 
@@ -100,13 +111,21 @@ const CustomerDashboard = () => {
     const hub = getHubsForCity(manualCity).find((h) => h.id === manualHubId);
     if (!hub) return;
 
-    setCustomerLocation({
+    const coordsFormatted = formatCoordinates(hub.lat, hub.lng);
+    const address = `${hub.area}, ${manualCity}`;
+
+    const manualLocation = {
       lat: hub.lat,
       lng: hub.lng,
       accuracy: null,
+      address,
+      fullAddress: `${hub.name}, ${hub.area}, ${manualCity}`,
+      formattedCoords: coordsFormatted,
       isFallback: false,
-    });
-    setLocationLabel(`${hub.area}, ${manualCity}`);
+    };
+
+    setCustomerLocation(manualLocation);
+    setLocationLabel(address);
     setLocationStatus("ready");
   };
 
@@ -280,10 +299,16 @@ const CustomerDashboard = () => {
             : null,
 
         city: "",
-        area: locationLabel || "Customer location",
+        area: customerLocation.address || locationLabel || "Customer pinpoint location",
 
         serviceType: selectedServiceType,
-        customerLocation,
+        customerLocation: {
+          lat: customerLocation.lat,
+          lng: customerLocation.lng,
+          accuracy: customerLocation.accuracy,
+          address: customerLocation.address || locationLabel,
+          formattedCoords: customerLocation.formattedCoords || formatCoordinates(customerLocation.lat, customerLocation.lng),
+        },
 
         createdAt: new Date(),
       });
@@ -317,18 +342,20 @@ const CustomerDashboard = () => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-up">
 
-      {/* DEMO TIP */}
+      {/* REVIEWER & DEMO GUIDE */}
 
       {!demoTipDismissed && (
         <div className="demo-banner">
-          <div>
-            <p className="demo-banner-title">Demo tip</p>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="badge badge-warning text-xs font-mono">Portfolio Review Guide</span>
+            </div>
+            <p className="demo-banner-title mt-1">Testing the Two-Sided Real-Time Dispatch</p>
             <p className="demo-banner-body">
-              GarageGo is role-based. After sending a request, open GarageGo in
-              an incognito window (or another browser), log in as a mechanic,
-              and accept it there to see the full flow.
+              GarageGo is role-based. After sending a request from this driver dashboard, open GarageGo in
+              an <strong>incognito window</strong> (or another browser) and log in with a mechanic account to see real-time dispatch alerts, turn-by-turn navigation, and OTP completion!
             </p>
           </div>
           <button
@@ -344,34 +371,56 @@ const CustomerDashboard = () => {
       {/* LOCATION */}
 
       <section className="card">
-        <h2 className="text-xl font-semibold">Your Location</h2>
-        <p className="text-muted text-sm mt-1">
-          We use your live GPS location to show the nearest available mechanics.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-semibold">Your Pinpoint Location</h2>
+            <p className="text-muted text-sm mt-1">
+              Live GPS pinpointing is used to calculate exact driving distance and technician ETA.
+            </p>
+          </div>
+
+          {customerLocation?.accuracy && (
+            <span className="badge badge-success text-xs">
+              GPS Accuracy: ±{Math.round(customerLocation.accuracy)}m
+            </span>
+          )}
+        </div>
 
         <div className="mt-5">
           {locationStatus === "detecting" && (
-            <Loader compact label="Detecting your location..." />
+            <Loader compact label="Pinpointing your GPS coordinates & reverse geocoding..." />
           )}
 
           {locationStatus === "ready" && (
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="badge badge-success">Location detected</span>
-              <span className="text-sm text-muted">{locationLabel}</span>
-              <button
-                type="button"
-                className="btn-secondary text-sm"
-                onClick={detectLocation}
-              >
-                Re-detect
-              </button>
-              <button
-                type="button"
-                className="btn-secondary text-sm"
-                onClick={() => setLocationStatus("manual")}
-              >
-                Choose manually
-              </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--surface-2)] border border-[var(--border)]">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-semibold text-sm text-[var(--text)]">
+                    {customerLocation?.address || locationLabel}
+                  </span>
+                </div>
+                <p className="text-xs font-mono text-amber-light">
+                  {customerLocation?.formattedCoords || formatCoordinates(customerLocation?.lat, customerLocation?.lng)}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="btn-secondary text-xs !py-2 !px-4"
+                  onClick={detectLocation}
+                >
+                  🛰️ Re-detect GPS
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary text-xs !py-2 !px-4"
+                  onClick={() => setLocationStatus("manual")}
+                >
+                  📍 Select Hub Manually
+                </button>
+              </div>
             </div>
           )}
 

@@ -90,9 +90,17 @@ const NearbyMap = ({ customerLocation, mechanics = [] }) => {
 
         {/* CUSTOMER POSITION */}
         <Marker position={customerPosition} icon={customerIcon}>
-          <Popup>You are here</Popup>
+          <Popup>
+            <div className="space-y-1">
+              <p className="font-semibold text-amber">📍 Your Pinpoint Location</p>
+              <p className="text-xs">{customerLocation.address || "Live GPS Location"}</p>
+              {customerLocation.accuracy && (
+                <p className="text-xs text-muted">Accuracy: ±{Math.round(customerLocation.accuracy)}m</p>
+              )}
+            </div>
+          </Popup>
           <Tooltip direction="top" offset={[0, -10]} permanent>
-            You
+            You (GPS)
           </Tooltip>
         </Marker>
 

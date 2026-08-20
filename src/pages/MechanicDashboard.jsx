@@ -189,18 +189,19 @@ const MechanicDashboard = () => {
 
   return (
 
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-up">
 
-      {/* DEMO TIP */}
+      {/* REVIEWER & DEMO GUIDE */}
 
       {!demoTipDismissed && (
         <div className="demo-banner">
-          <div>
-            <p className="demo-banner-title">Mechanic view</p>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="badge badge-warning text-xs font-mono">Portfolio Review Guide</span>
+            </div>
+            <p className="demo-banner-title mt-1">Technician Dispatch Console</p>
             <p className="demo-banner-body">
-              This dashboard updates in real time. To demo the full flow, keep
-              this tab open, then log in as a customer in another browser or
-              incognito window and send a request to this mechanic.
+              This technician console listens for real-time customer distress calls. When a customer sends a request, it appears here instantly without refreshing. Accept the request to view the customer’s exact pinpoint location, GPS turn-by-turn route, and verify their OTP upon service completion.
             </p>
           </div>
           <button
@@ -221,17 +222,17 @@ const MechanicDashboard = () => {
       <section className="card">
 
         <h2 className="text-xl font-semibold">
-          Mechanic Dashboard
+          Mechanic Operations Console
         </h2>
 
         <p className="text-muted text-sm mt-1">
-          Incoming breakdown requests appear here instantly — no refresh needed.
+          Incoming customer distress calls and active jobs update here in real time.
         </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
 
           <span className="text-sm text-muted">
-            Current Status
+            Technician Status:
           </span>
 
           <span

@@ -31,7 +31,7 @@ const Navbar = () => {
 
         {/* RIGHT SIDE */}
 
-        {currentUser && (
+        {currentUser ? (
           <div className="app-navbar-actions">
 
             {/* ROLE BADGE */}
@@ -49,6 +49,22 @@ const Navbar = () => {
               Logout
             </button>
 
+          </div>
+        ) : (
+          <div className="app-navbar-actions">
+            <Link
+              to="/login"
+              className="nav-logout-button"
+            >
+              Login
+            </Link>
+
+            <Link
+              to="/signup"
+              className="btn-primary !py-1.5 !px-4 !text-xs font-semibold"
+            >
+              Get Started
+            </Link>
           </div>
         )}
 

@@ -150,7 +150,15 @@ const LocationMap = ({
 
         {/* CUSTOMER MARKER */}
         <Marker position={customerPosition} icon={customerIcon}>
-          <Popup>Customer location</Popup>
+          <Popup>
+            <div className="space-y-1">
+              <p className="font-semibold text-amber">📍 Customer Pinpoint</p>
+              <p className="text-xs">{customerLocation.address || "Live GPS Location"}</p>
+              {customerLocation.accuracy && (
+                <p className="text-xs text-muted">Accuracy: ±{Math.round(customerLocation.accuracy)}m</p>
+              )}
+            </div>
+          </Popup>
           <Tooltip direction="top" offset={[0, -10]} permanent>
             Customer
           </Tooltip>
@@ -197,32 +205,39 @@ const LocationMap = ({
       </MapContainer>
 
       {/* INFO PANEL */}
-      <div className="p-4 border-t border-[var(--border)]">
+      <div className="p-4 border-t border-[var(--border)] space-y-1.5 bg-[var(--surface)]">
+        <div className="flex justify-between items-start text-sm">
+          <span className="text-muted">Customer Pinpoint</span>
+          <span className="text-right font-medium max-w-[60%] truncate" title={customerLocation.address}>
+            {customerLocation.address || `${customerLocation.lat.toFixed(4)}°, ${customerLocation.lng.toFixed(4)}°`}
+          </span>
+        </div>
+
         <div className="flex justify-between text-sm">
-          <span className="text-muted">Mechanic base</span>
+          <span className="text-muted">Mechanic Base</span>
           <span>{mechanicPosition ? mechanicBaseLabel : "—"}</span>
         </div>
 
         {distanceKm != null && (
-          <div className="flex justify-between text-sm mt-1">
-            <span className="text-muted">Distance</span>
-            <span>{distanceKm.toFixed(2)} km</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted">Direct Driving Distance</span>
+            <span className="font-mono text-amber-light">{distanceKm.toFixed(2)} km</span>
           </div>
         )}
 
         {etaMinutes != null && (
-          <div className="flex justify-between text-sm mt-1">
-            <span className="text-muted">Estimated arrival</span>
-            <span>~{etaMinutes} min</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted">Estimated Arrival</span>
+            <span className="font-mono text-emerald-400">~{etaMinutes} min</span>
           </div>
         )}
 
-        <div className="flex justify-between text-sm mt-1">
-          <span className="text-muted">Customer GPS accuracy</span>
+        <div className="flex justify-between text-sm">
+          <span className="text-muted">GPS Accuracy Radius</span>
           <span>
             {customerLocation.accuracy
-              ? `${Math.round(customerLocation.accuracy)} m`
-              : "unknown"}
+              ? `±${Math.round(customerLocation.accuracy)} m`
+              : "Calibrated"}
           </span>
         </div>
       </div>

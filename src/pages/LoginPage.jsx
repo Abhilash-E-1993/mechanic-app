@@ -3,11 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { markOnboardingPending } from "../utils/onboardingSession";
 
-const DEMO_ACCOUNTS = {
-  customer: { email: "customer@garagego.app", password: "GarageGo@123" },
-  mechanic: { email: "mechanic@garagego.app", password: "GarageGo@123" },
-};
-
 const LoginPage = () => {
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -41,18 +36,10 @@ const LoginPage = () => {
 
       navigate("/");
     } catch {
-      setError("Invalid email or password.");
+      setError("Invalid email or password. Please check your credentials.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemoAccount = (account) => {
-    setError("");
-    setFormData({
-      email: account.email,
-      password: account.password,
-    });
   };
 
   const handleGoogleLogin = async () => {
@@ -77,9 +64,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex justify-center pt-20">
-      <div className="card max-w-md w-full animate-fade-up">
+    <div className="flex justify-center items-center min-h-[calc(100vh-140px)] py-10">
+      <div className="card max-w-md w-full animate-fade-up shadow-2xl">
         <div className="text-center mb-8">
+          <span className="brand-mark mb-3 mx-auto text-base">G</span>
           <h1 className="text-3xl font-semibold text-shimmer">
             Welcome Back
           </h1>
@@ -97,7 +85,7 @@ const LoginPage = () => {
         >
           <div>
             <label className="input-label">
-              Email
+              Email Address
             </label>
 
             <input
@@ -139,7 +127,7 @@ const LoginPage = () => {
             disabled={loading}
             className="btn-primary w-full mt-4"
           >
-            {loading ? "Signing in..." : "Login"}
+            {loading ? "Signing in..." : "Login to Account"}
           </button>
         </form>
 
@@ -148,6 +136,7 @@ const LoginPage = () => {
         </div>
 
         <button
+          type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
           className="btn-secondary w-full"
@@ -155,49 +144,20 @@ const LoginPage = () => {
           Continue with Google
         </button>
 
-        {/* DEMO ACCOUNTS */}
-
-        <div className="demo-login-panel">
-          <p className="demo-login-title">Demo accounts</p>
-          <p className="demo-login-copy">
-            Reviewing GarageGo? One-click fill below. Use the customer account
-            in this browser and the mechanic account in an incognito window to
-            see the live two-role flow.
-          </p>
-
-          <div className="demo-login-actions">
-            <button
-              type="button"
-              className="btn-secondary text-sm"
-              onClick={() => fillDemoAccount(DEMO_ACCOUNTS.customer)}
-            >
-              Fill Demo Customer
-            </button>
-
-            <button
-              type="button"
-              className="btn-secondary text-sm"
-              onClick={() => fillDemoAccount(DEMO_ACCOUNTS.mechanic)}
-            >
-              Fill Demo Mechanic
-            </button>
-          </div>
-        </div>
-
         {error && (
-          <div className="mt-5 badge badge-danger">
+          <div className="mt-5 badge badge-danger w-full text-center py-2">
             {error}
           </div>
         )}
 
         <p className="text-sm text-muted mt-8 text-center">
-          New user?{" "}
+          New to GarageGo?{" "}
 
           <Link
             to="/signup"
             className="text-amber hover:text-amber-light font-medium"
           >
-            Create account
+            Create an account
           </Link>
         </p>
       </div>
@@ -206,3 +166,4 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
