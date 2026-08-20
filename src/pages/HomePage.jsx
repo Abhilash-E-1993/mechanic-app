@@ -9,75 +9,92 @@ import { getHubsForCity } from "../constants/garageHubs";
 import CustomerDashboard from "./CustomerDashboard";
 import MechanicDashboard from "./MechanicDashboard";
 
-/* ---------------- DISPATCH TICKET (hero signature visual) ----------------
-   A sample walkthrough of a job's lifecycle, styled like a garage work
-   order / service ticket. Clearly labeled as an example — no invented
-   names, coordinates, or timings are presented as real data. */
+/* ---------------- HERO ROUTE CARD (hero signature visual) ----------------
+   A stylized "tracking view" showing a route from customer to garage with
+   a flowing dispatch stage tracker underneath. Explicitly labeled as a
+   preview — no invented names, coordinates, or timings are presented as
+   real, live data. */
 
-const TICKET_STAGES = [
-  {
-    label: "Request sent",
-    detail: "Location and issue type shared with nearby garages",
-  },
-  {
-    label: "Garage matched",
-    detail: "Closest available garage accepts the job",
-  },
-  {
-    label: "Technician en route",
-    detail: "Route shown on the map until arrival",
-  },
-  {
-    label: "Job verified & closed",
-    detail: "A matching code confirms the work before it's marked done",
-  },
+const ROUTE_STAGES = [
+  { tag: "SOS", label: "Request sent", detail: "Location and issue type shared with nearby garages" },
+  { tag: "MATCH", label: "Garage matched", detail: "Closest available garage accepts the job" },
+  { tag: "ROUTE", label: "Technician en route", detail: "Route shown on the map until arrival" },
+  { tag: "DONE", label: "Job verified & closed", detail: "A matching code confirms the work before it's marked done" },
 ];
 
-const DispatchTicket = () => {
+const ROUTE_PATH_D = "M40,208 C130,208 118,86 210,86 S318,58 348,44";
+
+const HeroRouteCard = () => {
   const [activeStage, setActiveStage] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveStage((prev) => (prev + 1) % TICKET_STAGES.length);
+      setActiveStage((prev) => (prev + 1) % ROUTE_STAGES.length);
     }, 3400);
     return () => clearInterval(timer);
   }, []);
 
+  const current = ROUTE_STAGES[activeStage];
+
   return (
-    <div className="ticket-card animate-fade-up">
-      <div className="ticket-card-header">
-        <span className="ticket-eyebrow">Sample dispatch ticket</span>
-        <span className="ticket-icon" aria-hidden="true">🔧</span>
+    <div className="hero-route-card animate-fade-up">
+      <div className="hero-route-header">
+        <span className="hero-route-eyebrow">Sample tracking view</span>
+        <span className="hero-route-live">
+          <span className="hero-route-live-dot" />
+          Preview
+        </span>
       </div>
 
-      <div className="ticket-perforation" aria-hidden="true">
-        {Array.from({ length: 22 }).map((_, i) => (
-          <span key={i} className="ticket-perf-dot" />
-        ))}
+      <div className="hero-route-map">
+        <svg viewBox="0 0 400 240" className="route-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="mapGrid" width="28" height="28" patternUnits="userSpaceOnUse">
+              <circle cx="1.4" cy="1.4" r="1.4" className="route-grid-dot" />
+            </pattern>
+          </defs>
+          <rect width="400" height="240" fill="url(#mapGrid)" />
+
+          <path className="route-path-base" d={ROUTE_PATH_D} />
+          <path className="route-path-flow" d={ROUTE_PATH_D} />
+
+          <circle className="route-flow-dot" r="4.5">
+            <animateMotion dur="3.2s" repeatCount="indefinite" path={ROUTE_PATH_D} />
+          </circle>
+
+          <g>
+            <circle className="route-pin-pulse" cx="40" cy="208" r="15" />
+            <circle className="route-pin-base route-pin-start" cx="40" cy="208" r="14" />
+            <text x="40" y="213" textAnchor="middle" className="route-pin-icon">🚗</text>
+          </g>
+
+          <g>
+            <circle className="route-pin-base route-pin-end" cx="348" cy="44" r="14" />
+            <text x="348" y="49" textAnchor="middle" className="route-pin-icon">🔧</text>
+          </g>
+        </svg>
       </div>
 
-      <div className="ticket-body">
-        {TICKET_STAGES.map((stage, idx) => {
-          const state =
-            idx < activeStage ? "done" : idx === activeStage ? "active" : "pending";
-          return (
-            <div key={stage.label} className={`ticket-row ticket-row-${state}`}>
-              <span className="ticket-row-dot" aria-hidden="true" />
-              <div className="ticket-row-text">
-                <p className="ticket-row-label">{stage.label}</p>
-                {state === "active" && (
-                  <p className="ticket-row-detail">{stage.detail}</p>
-                )}
-              </div>
-              {state === "done" && <span className="ticket-row-check">✓</span>}
-            </div>
-          );
-        })}
+      <div className="hero-route-footer">
+        <div className="route-stage-track">
+          {ROUTE_STAGES.map((stage, idx) => (
+            <span
+              key={stage.tag}
+              className={`route-stage-seg ${idx <= activeStage ? "route-stage-seg-active" : ""}`}
+            />
+          ))}
+        </div>
+
+        <div className="route-status-row">
+          <span className="route-status-tag">{current.tag}</span>
+          <div>
+            <p className="route-status-label">{current.label}</p>
+            <p className="route-status-detail">{current.detail}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="ticket-footer">
-        <span className="ticket-footer-label">Illustrative — not live data</span>
-      </div>
+      <div className="hero-route-caption">Illustrative preview — not live tracking data</div>
     </div>
   );
 };
@@ -145,7 +162,7 @@ const HomePage = () => {
           </div>
 
           <div className="landing-hero-right">
-            <DispatchTicket />
+            <HeroRouteCard />
           </div>
         </section>
 
