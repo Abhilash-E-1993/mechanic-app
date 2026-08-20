@@ -9,117 +9,74 @@ import { getHubsForCity } from "../constants/garageHubs";
 import CustomerDashboard from "./CustomerDashboard";
 import MechanicDashboard from "./MechanicDashboard";
 
-/* ---------------- INTERACTIVE DISPATCH RADAR SIMULATOR ---------------- */
+/* ---------------- DISPATCH TICKET (hero signature visual) ----------------
+   A sample walkthrough of a job's lifecycle, styled like a garage work
+   order / service ticket. Clearly labeled as an example — no invented
+   names, coordinates, or timings are presented as real data. */
 
-const DispatchSimulator = () => {
-  const [activeStep, setActiveStep] = useState(0);
+const TICKET_STAGES = [
+  {
+    label: "Request sent",
+    detail: "Location and issue type shared with nearby garages",
+  },
+  {
+    label: "Garage matched",
+    detail: "Closest available garage accepts the job",
+  },
+  {
+    label: "Technician en route",
+    detail: "Route shown on the map until arrival",
+  },
+  {
+    label: "Job verified & closed",
+    detail: "A matching code confirms the work before it's marked done",
+  },
+];
 
-  const steps = [
-    {
-      label: "1. SOS Request Triggered",
-      status: "Detecting live GPS coordinates",
-      coords: "12.9716° N, 77.5946° E",
-      detail: "Sub-10m accuracy achieved · Battery Jumpstart selected",
-      badge: "GPS Pinpointed",
-      badgeType: "badge-success",
-    },
-    {
-      label: "2. Nearest Garage Matched",
-      status: "Indiranagar FastTrack Auto Hub",
-      coords: "1.8 km away · Estimated ETA: 7 mins",
-      detail: "Assigned to Senior Technician Rajesh Kumar",
-      badge: "Matched in 0.4s",
-      badgeType: "badge-warning",
-    },
-    {
-      label: "3. Real-Time Technician Route",
-      status: "Technician dispatched & en route",
-      coords: "Live route tracking on Leaflet Map",
-      detail: "Turn-by-turn navigation active · ETA updating",
-      badge: "En Route (~6m)",
-      badgeType: "badge-warning",
-    },
-    {
-      label: "4. Secure OTP Handshake",
-      status: "Service Completed at Customer Location",
-      coords: "Mutual 4-digit OTP verification: #8492",
-      detail: "Work order closed · Zero payment discrepancies",
-      badge: "Verified & Closed",
-      badgeType: "badge-success",
-    },
-  ];
+const DispatchTicket = () => {
+  const [activeStage, setActiveStage] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % steps.length);
-    }, 3800);
+      setActiveStage((prev) => (prev + 1) % TICKET_STAGES.length);
+    }, 3400);
     return () => clearInterval(timer);
-  }, [steps.length]);
-
-  const current = steps[activeStep];
+  }, []);
 
   return (
-    <div className="radar-simulation-card animate-fade-up">
-      <div className="radar-sim-header">
-        <div className="flex items-center gap-2">
-          <span className="radar-live-dot" />
-          <span className="text-xs font-bold uppercase tracking-wider text-amber">
-            Live Dispatch Engine Preview
-          </span>
-        </div>
-        <span className={`badge ${current.badgeType} text-xs font-mono`}>
-          {current.badge}
-        </span>
+    <div className="ticket-card animate-fade-up">
+      <div className="ticket-card-header">
+        <span className="ticket-eyebrow">Sample dispatch ticket</span>
+        <span className="ticket-icon" aria-hidden="true">🔧</span>
       </div>
 
-      <div className="radar-display-area">
-        {/* Radar concentric rings */}
-        <div className="radar-ring radar-ring-1" />
-        <div className="radar-ring radar-ring-2" />
-        <div className="radar-ring radar-ring-3" />
-        <div className="radar-sweep" />
-
-        {/* Central user pin */}
-        <div className="radar-center-pin" title="Customer Pinpoint">
-          <span className="radar-pin-pulse" />
-          <span className="radar-pin-core">🚗</span>
-        </div>
-
-        {/* Moving mechanic blips */}
-        <div className="radar-blip radar-blip-1" title="Technician en route">
-          <span className="radar-blip-pulse" />
-          <span className="radar-blip-icon">🔧</span>
-        </div>
-        <div className="radar-blip radar-blip-2" title="Backup Hub">
-          <span className="radar-blip-icon">🏢</span>
-        </div>
+      <div className="ticket-perforation" aria-hidden="true">
+        {Array.from({ length: 22 }).map((_, i) => (
+          <span key={i} className="ticket-perf-dot" />
+        ))}
       </div>
 
-      <div className="radar-status-drawer">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted font-medium">{current.label}</span>
-          <div className="flex gap-1">
-            {steps.map((_, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setActiveStep(idx)}
-                aria-label={`Go to step ${idx + 1}`}
-                className={`radar-step-dot ${activeStep === idx ? "radar-step-dot-active" : ""}`}
-              />
-            ))}
-          </div>
-        </div>
+      <div className="ticket-body">
+        {TICKET_STAGES.map((stage, idx) => {
+          const state =
+            idx < activeStage ? "done" : idx === activeStage ? "active" : "pending";
+          return (
+            <div key={stage.label} className={`ticket-row ticket-row-${state}`}>
+              <span className="ticket-row-dot" aria-hidden="true" />
+              <div className="ticket-row-text">
+                <p className="ticket-row-label">{stage.label}</p>
+                {state === "active" && (
+                  <p className="ticket-row-detail">{stage.detail}</p>
+                )}
+              </div>
+              {state === "done" && <span className="ticket-row-check">✓</span>}
+            </div>
+          );
+        })}
+      </div>
 
-        <p className="font-semibold text-sm text-[var(--text)] mt-1">
-          {current.status}
-        </p>
-        <p className="text-xs font-mono text-amber-light mt-0.5">
-          {current.coords}
-        </p>
-        <p className="text-xs text-muted mt-1">
-          {current.detail}
-        </p>
+      <div className="ticket-footer">
+        <span className="ticket-footer-label">Illustrative — not live data</span>
       </div>
     </div>
   );
@@ -152,19 +109,20 @@ const HomePage = () => {
         {/* HERO SECTION */}
         <section className="landing-hero-grid">
           <div className="landing-hero-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-amber/30 bg-amber/10 text-amber text-xs font-semibold uppercase tracking-wider mb-6">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              Real-Time Emergency Roadside Platform
+            <div className="section-tag mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber" />
+              Roadside assistance, on demand
             </div>
 
             <h1 className="hero-headline">
-              Instant Mechanic Support, <br />
-              <span className="text-gradient-amber">Pinpointed & Dispatched</span> in Seconds.
+              Your car breaks down.<br />
+              <span className="text-gradient-amber">We get a mechanic there.</span>
             </h1>
 
             <p className="hero-subtext">
-              When your vehicle stops, GarageGo connects you instantly to the nearest certified garage.
-              Live GPS pinpointing, automated failover routing, real-time map tracking, and secure OTP handshakes.
+              GarageGo connects stranded drivers with nearby garages — pinpointed
+              by GPS, tracked on a live map, and confirmed with a secure handoff
+              when the job is done.
             </p>
 
             <div className="hero-cta-group">
@@ -178,88 +136,81 @@ const HomePage = () => {
               </Link>
             </div>
 
-            {/* LIVE TRUST & METRIC METRICS */}
-            <div className="hero-metrics-ticker">
-              <div className="metric-cell">
-                <span className="metric-val">&lt; 15 min</span>
-                <span className="metric-lbl">Average Arrival ETA</span>
-              </div>
-              <div className="metric-cell">
-                <span className="metric-val">Sub-10m</span>
-                <span className="metric-lbl">GPS Pinpoint Accuracy</span>
-              </div>
-              <div className="metric-cell">
-                <span className="metric-val">100%</span>
-                <span className="metric-lbl">OTP Verified Handshake</span>
-              </div>
-              <div className="metric-cell">
-                <span className="metric-val">24 / 7</span>
-                <span className="metric-lbl">Real-Time Sync</span>
-              </div>
+            {/* CAPABILITY PILLS (no fabricated metrics — just what it does) */}
+            <div className="capability-pill-row">
+              <span className="capability-pill">GPS-based matching</span>
+              <span className="capability-pill">Live map tracking</span>
+              <span className="capability-pill">Code-verified handoff</span>
             </div>
           </div>
 
           <div className="landing-hero-right">
-            <DispatchSimulator />
+            <DispatchTicket />
           </div>
         </section>
 
         {/* CORE PLATFORM CAPABILITIES */}
         <section className="landing-section">
           <div className="section-header-center">
-            <span className="section-tag">Engineered for Reliability</span>
-            <h2 className="section-heading">State-of-the-Art Architecture</h2>
+            <span className="section-tag">Under the hood</span>
+            <h2 className="section-heading">How the platform is built</h2>
             <p className="section-subheading">
-              Built with high-availability real-time technologies to deliver instantaneous dispatching under high stress.
+              A quick look at the pieces that make dispatch and tracking work.
             </p>
           </div>
 
           <div className="features-grid-3x2">
             <div className="feature-box">
               <div className="feature-icon-bubble">🛰️</div>
-              <h3 className="feature-title">Precision GPS Pinpoint</h3>
+              <h3 className="feature-title">GPS Location Pinpoint</h3>
               <p className="feature-copy">
-                Accurate sub-10m coordinate extraction with Nominatim reverse-geocoding to display exact street-level addresses.
+                Reads your device's GPS coordinates and reverse-geocodes them
+                into a readable street address using Nominatim.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">⚡</div>
-              <h3 className="feature-title">Smart Proximity Routing</h3>
+              <h3 className="feature-title">Proximity Routing</h3>
               <p className="feature-copy">
-                Calculates real-time haversine distance matrices and queues backup mechanics automatically if the first is busy.
+                Ranks nearby garages by distance and automatically queues a
+                backup if the closest one is already on a job.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">🗺️</div>
-              <h3 className="feature-title">Live Turn-by-Turn Tracking</h3>
+              <h3 className="feature-title">Turn-by-Turn Tracking</h3>
               <p className="feature-copy">
-                Interactive OpenStreetMap & Leaflet integration with dynamic ETA updates, route polylines, and Google Maps direct navigation.
+                A Leaflet and OpenStreetMap view shows the technician's route
+                and ETA, with a handoff to Google Maps for navigation.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">🔒</div>
-              <h3 className="feature-title">Cryptographic OTP Handshake</h3>
+              <h3 className="feature-title">Verified Completion</h3>
               <p className="feature-copy">
-                Mutual 4-digit verification code system prevents premature closure, guaranteeing the technician is on-site before completing.
+                A matching 4-digit code between customer and technician
+                confirms the job before it's marked closed.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">📲</div>
-              <h3 className="feature-title">Cloud Push Notifications</h3>
+              <h3 className="feature-title">Push Notifications</h3>
               <p className="feature-copy">
-                Integrated Web Push & Service Workers deliver immediate audio-visual dispatch alerts to mechanics even with browser minimized.
+                Web Push and a service worker alert technicians to new jobs
+                even when the browser tab isn't in focus.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">👥</div>
-              <h3 className="feature-title">Two-Sided Real-Time Sync</h3>
+              <h3 className="feature-title">Two-Sided Sync</h3>
               <p className="feature-copy">
-                Firestore real-time snapshot listeners synchronize job requests, status changes, and technician assignment in sub-second latency.
+                Firestore listeners keep job status, requests, and assignment
+                in sync between the customer and technician views.
               </p>
             </div>
           </div>
@@ -268,10 +219,10 @@ const HomePage = () => {
         {/* INTERACTIVE HOW IT WORKS */}
         <section className="landing-section">
           <div className="section-header-center">
-            <span className="section-tag">Seamless Workflow</span>
-            <h2 className="section-heading">How GarageGo Works</h2>
+            <span className="section-tag">Two sides, one flow</span>
+            <h2 className="section-heading">How GarageGo works</h2>
             <p className="section-subheading">
-              Select your role to explore the end-to-end dispatch and resolution pipeline.
+              Select a role to see what the flow looks like from each side.
             </p>
 
             <div className="role-switch-pills">
@@ -296,25 +247,28 @@ const HomePage = () => {
             <div className="steps-cards-grid">
               <div className="workflow-card">
                 <span className="workflow-step-num">01</span>
-                <h4 className="workflow-card-title">1-Click GPS Pinpointing</h4>
+                <h4 className="workflow-card-title">Share your location</h4>
                 <p className="workflow-card-copy">
-                  GarageGo detects your exact GPS coordinates and reverse-geocodes your street location instantly.
+                  GarageGo reads your GPS coordinates and shows your
+                  approximate street location.
                 </p>
               </div>
 
               <div className="workflow-card">
                 <span className="workflow-step-num">02</span>
-                <h4 className="workflow-card-title">Select Issue & Dispatch</h4>
+                <h4 className="workflow-card-title">Pick the issue & dispatch</h4>
                 <p className="workflow-card-copy">
-                  Pick your breakdown type (Puncture, Battery, Towing, Engine) and dispatch to the closest verified garage.
+                  Choose your breakdown type — puncture, battery, towing,
+                  engine — and send it to the nearest available garage.
                 </p>
               </div>
 
               <div className="workflow-card">
                 <span className="workflow-step-num">03</span>
-                <h4 className="workflow-card-title">Live Tracking & OTP Close</h4>
+                <h4 className="workflow-card-title">Track & confirm</h4>
                 <p className="workflow-card-copy">
-                  Watch technician approach in real time on the Leaflet map and share your 4-digit OTP upon job completion.
+                  Watch the technician approach on the map, then share your
+                  code once the job is finished.
                 </p>
               </div>
             </div>
@@ -322,25 +276,28 @@ const HomePage = () => {
             <div className="steps-cards-grid">
               <div className="workflow-card">
                 <span className="workflow-step-num">01</span>
-                <h4 className="workflow-card-title">Realtime Distress Alert</h4>
+                <h4 className="workflow-card-title">Get notified</h4>
                 <p className="workflow-card-copy">
-                  Get instant audio-visual push notifications on your dashboard when a stranded motorist requests help nearby.
+                  A push notification lands on your dashboard when a
+                  motorist nearby requests help.
                 </p>
               </div>
 
               <div className="workflow-card">
                 <span className="workflow-step-num">02</span>
-                <h4 className="workflow-card-title">1-Click Accept & GPS Route</h4>
+                <h4 className="workflow-card-title">Accept & navigate</h4>
                 <p className="workflow-card-copy">
-                  Accept the job to receive exact customer pinpoint coordinates and launch turn-by-turn driving navigation.
+                  Accept the job to see the customer's pinpointed location
+                  and get turn-by-turn directions.
                 </p>
               </div>
 
               <div className="workflow-card">
                 <span className="workflow-step-num">03</span>
-                <h4 className="workflow-card-title">Verify OTP & Complete</h4>
+                <h4 className="workflow-card-title">Verify & close</h4>
                 <p className="workflow-card-copy">
-                  Generate and verify the customer’s secure completion OTP to close the service ticket seamlessly.
+                  Check the customer's completion code against yours to
+                  close out the ticket.
                 </p>
               </div>
             </div>
@@ -350,10 +307,10 @@ const HomePage = () => {
         {/* CITY COVERAGE & HUBS EXPLORER */}
         <section className="landing-section">
           <div className="section-header-center">
-            <span className="section-tag">Coverage Network</span>
-            <h2 className="section-heading">Strategic Metropolitan Hubs</h2>
+            <span className="section-tag">Coverage</span>
+            <h2 className="section-heading">Garage hubs by city</h2>
             <p className="section-subheading">
-              Our network covers prime high-traffic corridors to guarantee rapid roadside dispatch.
+              Garages onboarded in each city, ready to take dispatch requests.
             </p>
 
             <div className="flex flex-wrap justify-center gap-2 mt-6">
@@ -375,11 +332,11 @@ const HomePage = () => {
               <div key={hub.id} className="hub-display-card">
                 <div className="flex items-center justify-between">
                   <span className="hub-area-tag">{hub.area}</span>
-                  <span className="hub-status-online">● Ready</span>
+                  <span className="hub-status-tag">Garage hub</span>
                 </div>
                 <h4 className="hub-name-text">{hub.name}</h4>
                 <p className="text-xs text-muted mt-2 font-mono">
-                  Coordinates: {hub.lat.toFixed(4)}° N, {hub.lng.toFixed(4)}° E
+                  {hub.lat.toFixed(4)}° N, {hub.lng.toFixed(4)}° E
                 </p>
               </div>
             ))}
@@ -390,10 +347,11 @@ const HomePage = () => {
         <section className="landing-section">
           <div className="tech-stack-banner">
             <div>
-              <span className="section-tag">Production Stack</span>
-              <h3 className="text-xl font-bold mt-2">Engineered for Performance & Scalability</h3>
+              <span className="section-tag">Built with</span>
+              <h3 className="text-xl font-bold mt-2">The stack behind GarageGo</h3>
               <p className="text-sm text-muted mt-1 max-w-xl">
-                Built with modern web standards, resilient cloud synchronization, and responsive styling for desktop and mobile devices.
+                A modern web stack with real-time sync and responsive styling
+                for both desktop and mobile.
               </p>
             </div>
 
@@ -414,10 +372,11 @@ const HomePage = () => {
         <section className="landing-cta-banner">
           <div className="max-w-2xl">
             <h2 className="text-2xl sm:text-3xl font-bold text-shimmer">
-              Ready to Experience Next-Gen Roadside Help?
+              Set up your account
             </h2>
             <p className="text-muted text-sm sm:text-base mt-2">
-              Create an account in 30 seconds or log in to access the driver and mechanic dashboards.
+              Create an account or log in to reach your driver or mechanic
+              dashboard.
             </p>
           </div>
 
@@ -437,13 +396,12 @@ const HomePage = () => {
             <div className="flex items-center gap-2">
               <span className="brand-mark">G</span>
               <span className="font-bold text-sm">GarageGo</span>
-              <span className="text-xs text-muted ml-2">© 2026 · Real-Time Roadside Assistance</span>
+              <span className="text-xs text-muted ml-2">© 2026 · Roadside Assistance</span>
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted">
               <Link to="/login" className="hover:text-amber">Login</Link>
               <Link to="/signup" className="hover:text-amber">Register</Link>
-              <span>Built for high-reliability emergency response</span>
             </div>
           </div>
         </footer>

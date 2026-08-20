@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root{
@@ -78,6 +78,10 @@ h1,h2,h3,h4{
   font-family:'Syne',system-ui;
   letter-spacing:0;
 
+}
+
+.font-mono{
+  font-family:'IBM Plex Mono',monospace;
 }
 
 .page-wrapper{
@@ -1529,7 +1533,7 @@ h1,h2,h3,h4{
 .toast-info{ border-left:3px solid var(--amber); }
 
 /* ==========================================================================
-   STATE-OF-THE-ART LANDING PAGE STYLES
+   LANDING PAGE LAYOUT
    ========================================================================== */
 
 .landing-shell-premium {
@@ -1538,8 +1542,6 @@ h1,h2,h3,h4{
   gap: 80px;
   padding-bottom: 60px;
 }
-
-/* ---------- HERO GRID ---------- */
 
 .landing-hero-grid {
   display: grid;
@@ -1580,7 +1582,7 @@ h1,h2,h3,h4{
   font-size: clamp(1rem, 1.8vw, 1.15rem);
   line-height: 1.65;
   color: #C5C2B6;
-  max-width: 580px;
+  max-width: 560px;
 }
 
 .hero-cta-group {
@@ -1591,195 +1593,175 @@ h1,h2,h3,h4{
   margin-top: 32px;
 }
 
-/* ---------- HERO METRICS TICKER ---------- */
-
-.hero-metrics-ticker {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 48px;
-  padding: 16px 20px;
-  background: rgba(16, 19, 27, 0.75);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(12px);
-}
-
-@media (max-width: 640px) {
-  .hero-metrics-ticker {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-.metric-cell {
+/* Capability pills — replaces the old fabricated-metrics ticker.
+   Plain statements of what the app does, no invented numbers. */
+.capability-pill-row {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 36px;
 }
 
-.metric-val {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--amber-light);
-}
-
-.metric-lbl {
-  font-size: 0.75rem;
+.capability-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text-2);
-  margin-top: 3px;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-/* ---------- RADAR DISPATCH SIMULATOR ---------- */
+/* ---------------- DISPATCH TICKET (hero signature) ---------------- */
 
-.radar-simulation-card {
-  background: rgba(16, 19, 27, 0.88);
-  border: 1px solid rgba(242, 163, 58, 0.22);
-  border-radius: 24px;
+.ticket-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(21, 26, 36, 0.95), rgba(16, 19, 27, 0.98));
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 40px rgba(242, 163, 58, 0.08);
-  backdrop-filter: blur(20px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  max-width: 420px;
+  margin-left: auto;
 }
 
-.radar-sim-header {
+@media (max-width: 1024px) {
+  .ticket-card { margin-left: 0; margin-right: auto; }
+}
+
+.ticket-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  background: rgba(21, 26, 36, 0.6);
+  padding: 18px 22px;
+  border-bottom: 1px dashed var(--border-2);
 }
 
-.radar-live-dot {
+.ticket-eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.ticket-icon {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* perforation strip evoking a torn ticket stub */
+.ticket-perforation {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 0;
+  position: relative;
+}
+
+.ticket-perf-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--void);
+  transform: translateY(-2.5px);
+}
+
+.ticket-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ticket-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 4px;
+  border-radius: 10px;
+  transition: background 0.25s ease;
+}
+
+.ticket-row-active {
+  background: rgba(242, 163, 58, 0.06);
+}
+
+.ticket-row-dot {
+  margin-top: 5px;
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #10B981;
-  box-shadow: 0 0 10px #10B981;
-  animation: pulseDot 2s infinite ease-in-out;
+  border: 1.5px solid var(--text-3);
+  flex-shrink: 0;
+  transition: all 0.25s ease;
 }
 
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+.ticket-row-pending .ticket-row-dot {
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.radar-display-area {
-  position: relative;
-  height: 240px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: radial-gradient(circle at center, rgba(242, 163, 58, 0.06) 0%, rgba(8, 10, 15, 0.95) 75%);
-}
-
-.radar-ring {
-  position: absolute;
-  border-radius: 999px;
-  border: 1px dashed rgba(242, 163, 58, 0.2);
-  pointer-events: none;
-}
-
-.radar-ring-1 { width: 70px; height: 70px; }
-.radar-ring-2 { width: 140px; height: 140px; }
-.radar-ring-3 { width: 210px; height: 210px; }
-
-.radar-sweep {
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  border-radius: 999px;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(242, 163, 58, 0.25) 60deg, transparent 65deg);
-  animation: radarSweep 4s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes radarSweep {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.radar-center-pin {
-  position: relative;
-  z-index: 5;
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  background: #1F2937;
-  border: 2px solid #EF4444;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-}
-
-.radar-pin-pulse {
-  position: absolute;
-  inset: -6px;
-  border-radius: 999px;
-  border: 2px solid rgba(239, 68, 68, 0.6);
-  animation: pingPulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes pingPulse {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(1.7); opacity: 0; }
-}
-
-.radar-blip {
-  position: absolute;
-  z-index: 6;
-  width: 32px;
-  height: 32px;
-  border-radius: 999px;
-  background: rgba(242, 163, 58, 0.25);
-  border: 1.5px solid var(--amber);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 15px rgba(242, 163, 58, 0.35);
-  font-size: 14px;
-}
-
-.radar-blip-1 {
-  top: 45px;
-  right: 75px;
-  animation: blipFloat 3s ease-in-out infinite alternate;
-}
-
-.radar-blip-2 {
-  bottom: 40px;
-  left: 60px;
-}
-
-@keyframes blipFloat {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(-6px, 8px); }
-}
-
-.radar-status-drawer {
-  padding: 18px 20px;
-  background: rgba(16, 19, 27, 0.95);
-  border-top: 1px solid var(--border);
-}
-
-.radar-step-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
-  transition: all 0.2s ease;
-}
-
-.radar-step-dot-active {
-  width: 18px;
+.ticket-row-active .ticket-row-dot {
+  border-color: var(--amber);
   background: var(--amber);
-  box-shadow: 0 0 8px rgba(242, 163, 58, 0.6);
+  box-shadow: 0 0 0 4px rgba(242, 163, 58, 0.16);
 }
 
-/* ---------- SECTION HEADERS ---------- */
+.ticket-row-done .ticket-row-dot {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.ticket-row-text {
+  flex: 1;
+}
+
+.ticket-row-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.ticket-row-active .ticket-row-label {
+  color: var(--text);
+}
+
+.ticket-row-done .ticket-row-label {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: rgba(115, 112, 103, 0.5);
+}
+
+.ticket-row-detail {
+  margin-top: 3px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+.ticket-row-check {
+  font-size: 0.75rem;
+  color: var(--success);
+  margin-top: 4px;
+}
+
+.ticket-footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  background: rgba(8, 10, 15, 0.4);
+}
+
+.ticket-footer-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+}
+
+/* ---------------- SECTIONS ---------------- */
 
 .landing-section {
   display: flex;
@@ -1808,8 +1790,6 @@ h1,h2,h3,h4{
   line-height: 1.6;
 }
 
-/* ---------- FEATURES 3x2 GRID ---------- */
-
 .features-grid-3x2 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1817,15 +1797,11 @@ h1,h2,h3,h4{
 }
 
 @media (max-width: 1024px) {
-  .features-grid-3x2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .features-grid-3x2 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .features-grid-3x2 {
-    grid-template-columns: 1fr;
-  }
+  .features-grid-3x2 { grid-template-columns: 1fr; }
 }
 
 .feature-box {
@@ -1834,8 +1810,6 @@ h1,h2,h3,h4{
   border-radius: var(--radius-lg);
   padding: 26px;
   transition: all 0.25s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .feature-box:hover {
@@ -1871,8 +1845,6 @@ h1,h2,h3,h4{
   color: var(--text-2);
 }
 
-/* ---------- ROLE SWITCH PILLS & WORKFLOW ---------- */
-
 .role-switch-pills {
   display: inline-flex;
   gap: 8px;
@@ -1892,9 +1864,7 @@ h1,h2,h3,h4{
   transition: all 0.2s ease;
 }
 
-.role-switch-btn:hover {
-  color: var(--text);
-}
+.role-switch-btn:hover { color: var(--text); }
 
 .role-switch-btn-active {
   background: var(--amber);
@@ -1909,9 +1879,7 @@ h1,h2,h3,h4{
 }
 
 @media (max-width: 768px) {
-  .steps-cards-grid {
-    grid-template-columns: 1fr;
-  }
+  .steps-cards-grid { grid-template-columns: 1fr; }
 }
 
 .workflow-card {
@@ -1923,15 +1891,13 @@ h1,h2,h3,h4{
   transition: all 0.2s ease;
 }
 
-.workflow-card:hover {
-  border-color: var(--border-2);
-}
+.workflow-card:hover { border-color: var(--border-2); }
 
 .workflow-step-num {
-  font-family: 'Syne', sans-serif;
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: rgba(242, 163, 58, 0.3);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(242, 163, 58, 0.35);
   display: block;
   margin-bottom: 12px;
 }
@@ -1949,8 +1915,6 @@ h1,h2,h3,h4{
   line-height: 1.55;
   color: var(--text-2);
 }
-
-/* ---------- CITY COVERAGE HUBS ---------- */
 
 .city-pill {
   padding: 6px 14px;
@@ -2000,10 +1964,12 @@ h1,h2,h3,h4{
   color: var(--amber);
 }
 
-.hub-status-online {
-  font-size: 0.72rem;
-  color: #10B981;
+.hub-status-tag {
+  font-size: 0.68rem;
   font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .hub-name-text {
@@ -2012,8 +1978,6 @@ h1,h2,h3,h4{
   color: var(--text);
   margin-top: 6px;
 }
-
-/* ---------- TECH STACK BANNER ---------- */
 
 .tech-stack-banner {
   display: flex;
@@ -2043,7 +2007,6 @@ h1,h2,h3,h4{
   border: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.78rem;
   font-weight: 600;
-  font-mono: true;
   color: var(--text-2);
   transition: all 0.2s ease;
 }
@@ -2053,8 +2016,6 @@ h1,h2,h3,h4{
   color: var(--amber-light);
   background: rgba(242, 163, 58, 0.08);
 }
-
-/* ---------- BOTTOM CTA BANNER & FOOTER ---------- */
 
 .landing-cta-banner {
   display: flex;
