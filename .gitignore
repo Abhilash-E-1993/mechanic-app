@@ -6,3 +6,16 @@ server/.env
 .gitignore
 
 
+
+# local docs / notes - not for the repo (readme.md stays)
+ARCHITECTURE.md
+PROJECT_EXPLANATION.md
+RESUME.md
+INTERVIEW_QUESTIONS.md
+
+# stray duplicates - canonical rules live in firebase/firestore.rules
+firestore.rule
+firestore.rules
+
+# firebase deploy cache
+.firebase/

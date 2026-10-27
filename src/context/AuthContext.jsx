@@ -14,6 +14,7 @@ import {
   createOrUpdateUserProfile,
   getUserProfile,
 } from "../services/firestoreService";
+import { lookupEmailByPhone } from "../services/phoneAuthService";
 import { clearOnboardingPending } from "../utils/onboardingSession";
 
 const AuthContext = createContext(null);
@@ -119,6 +120,21 @@ export const AuthProvider = ({ children }) => {
     return signInWithEmailAndPassword(auth, email, password);
   };
 
+  // Phone-number login: resolve phone -> account email via the backend,
+  // then reuse the standard email/password sign-in.
+  const signInWithPhone = async (phone, password) => {
+    const email = await lookupEmailByPhone(phone);
+
+    if (!email) {
+      const error = new Error("Phone number is not registered.");
+      error.code = "auth/phone-not-registered";
+      throw error;
+    }
+
+    await setPersistence(auth, browserLocalPersistence);
+    return signInWithEmailAndPassword(auth, email, password);
+  };
+
   const signInWithGoogle = async () => {
     await setPersistence(auth, browserLocalPersistence);
 
@@ -177,6 +193,7 @@ export const AuthProvider = ({ children }) => {
       profileLoading,
       signUpWithEmail,
       signInWithEmail,
+      signInWithPhone,
       signInWithGoogle,
       logout,
       refreshProfile,

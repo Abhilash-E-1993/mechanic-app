@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { markOnboardingPending } from "../utils/onboardingSession";
+import { isPhoneIdentifier } from "../services/phoneAuthService";
 
 const LoginPage = () => {
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail, signInWithPhone, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
 
@@ -22,21 +23,43 @@ const LoginPage = () => {
     }));
   };
 
-  const handleEmailLogin = async (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
 
     setError("");
     setLoading(true);
 
+    const identifier = formData.identifier.trim();
+    const usingPhone = isPhoneIdentifier(identifier);
+
     try {
-      await signInWithEmail(
-        formData.email,
-        formData.password
-      );
+      if (usingPhone) {
+        await signInWithPhone(identifier, formData.password);
+      } else {
+        await signInWithEmail(identifier, formData.password);
+      }
 
       navigate("/");
-    } catch {
-      setError("Invalid email or password. Please check your credentials.");
+    } catch (err) {
+      if (err?.code === "auth/phone-not-registered") {
+        setError("This phone number is not registered. Please create an account.");
+      } else if (err?.message === "invalid-phone") {
+        setError("Enter a valid 10 digit phone number or your email.");
+      } else if (
+        err?.message === "phone-lookup-failed" ||
+        err?.name === "AbortError" ||
+        err instanceof TypeError
+      ) {
+        setError(
+          "Phone login service is unavailable right now. Please login with your email instead."
+        );
+      } else {
+        setError(
+          usingPhone
+            ? "Invalid phone number or password. Please check your credentials."
+            : "Invalid email or password. Please check your credentials."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -78,29 +101,33 @@ const LoginPage = () => {
         </div>
 
         <form
-          onSubmit={handleEmailLogin}
+          onSubmit={handleLogin}
           className="space-y-4"
           autoComplete="off"
           data-form-type="other"
         >
           <div>
             <label className="input-label">
-              Email Address
+              Phone Number or Email
             </label>
 
             <input
-              name="email"
-              type="email"
+              name="identifier"
+              type="text"
               autoComplete="off"
               data-lpignore="true"
               data-1p-ignore="true"
               spellCheck="false"
-              placeholder="you@example.com"
-              value={formData.email}
+              placeholder="9876543210 or you@example.com"
+              value={formData.identifier}
               onChange={handleChange}
               className="input"
               required
             />
+
+            <p className="text-muted text-xs mt-1">
+              Mechanics can login with just their phone number and password.
+            </p>
           </div>
 
           <div>

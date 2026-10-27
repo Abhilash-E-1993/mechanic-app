@@ -3,15 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { createOrUpdateUserProfile } from "../services/firestoreService";
+import {
+  lookupEmailByPhone,
+  normalizePhoneNumber,
+} from "../services/phoneAuthService";
 import { markOnboardingPending } from "../utils/onboardingSession";
 
 const SignupPage = () => {
 
-  const { signUpWithEmail } = useAuth();
+  const { signUpWithEmail, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
+    phone: "",
     email: "",
     password: "",
   });
@@ -37,10 +42,32 @@ const SignupPage = () => {
     setError("");
     setLoading(true);
 
+    const phoneNumber = normalizePhoneNumber(formData.phone);
+
+    if (!phoneNumber) {
+      setError("Enter a valid 10 digit phone number.");
+      setLoading(false);
+      return;
+    }
+
     try {
 
+      // block duplicate phone numbers — the phone is a login identifier
+      try {
+        const existingEmail = await lookupEmailByPhone(phoneNumber);
+        if (existingEmail) {
+          setError("Phone number already registered. Please login.");
+          setLoading(false);
+          return;
+        }
+      } catch (lookupErr) {
+        // If the backend is unreachable we cannot verify uniqueness —
+        // allow signup to continue rather than blocking the user.
+        console.warn("Phone uniqueness check skipped:", lookupErr);
+      }
+
       const credentials = await signUpWithEmail(
-        formData.email,
+        formData.email.trim(),
         formData.password
       );
 
@@ -51,13 +78,13 @@ const SignupPage = () => {
 
         name: formData.name.trim(),
         email: formData.email.trim(),
+        phoneNumber,
 
         role: null,
         city: null,
         serviceArea: null,
 
         garageName: null,
-        phoneNumber: null,
         experienceYears: null,
         services: [],
         availabilityStatus: null,
@@ -81,6 +108,37 @@ const SignupPage = () => {
       else {
         setError("Unable to create account. Please try again.");
       }
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  const handleGoogleSignup = async () => {
+
+    if (loading) return;
+
+    setError("");
+    setLoading(true);
+
+    try {
+
+      const googleLoginResult = await signInWithGoogle();
+      const { result, needsRoleSelection } = googleLoginResult;
+
+      if (needsRoleSelection) {
+        markOnboardingPending(result.user.uid);
+        navigate("/role-selection");
+      } else {
+        navigate("/");
+      }
+
+    } catch {
+
+      setError("Google signup failed. Please try again.");
 
     } finally {
 
@@ -142,6 +200,37 @@ const SignupPage = () => {
           <div>
 
             <label className="input-label">
+              Phone Number
+            </label>
+
+            <input
+              name="phone"
+              type="tel"
+              inputMode="numeric"
+              autoComplete="off"
+              data-lpignore="true"
+              data-1p-ignore="true"
+              placeholder="9876543210"
+              value={formData.phone}
+              onChange={(event) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  phone: event.target.value.replace(/\D/g, "").slice(0, 10),
+                }))
+              }
+              className="input"
+              required
+            />
+
+            <p className="text-muted text-xs mt-1">
+              You can login later using this number and your password.
+            </p>
+
+          </div>
+
+          <div>
+
+            <label className="input-label">
               Email
             </label>
 
@@ -191,6 +280,19 @@ const SignupPage = () => {
           </button>
 
         </form>
+
+        <div className="divider my-6">
+          or
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleSignup}
+          disabled={loading}
+          className="btn-secondary w-full"
+        >
+          Continue with Google
+        </button>
 
         {/* ERROR */}
 

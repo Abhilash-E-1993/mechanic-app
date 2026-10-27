@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import { requireAuth } from "./middleware/authMiddleware.js";
+import authRoutes from "./routes/authRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import { auth as adminAuth } from "./firebaseAdmin.js";
 import { startFallbackCallRecoveryLoop } from "./services/fallbackCallScheduler.js";
@@ -86,6 +87,9 @@ app.get("/api/health", (_req, res) => {
     service: "notification-backend",
   });
 });
+
+// Phone-number login lookup must stay public — the user is not signed in yet.
+app.use("/api/auth", authRoutes);
 
 app.use("/api/notifications", requireAuth, notificationRoutes);
 

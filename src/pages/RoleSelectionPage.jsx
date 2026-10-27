@@ -28,7 +28,7 @@ const RoleSelectionPage = () => {
   const [hubId, setHubId] = useState("");
 
   const [garageName, setGarageName] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState(profile?.phoneNumber || "");
   const [experienceYears, setExperienceYears] = useState(1);
 
   const [services, setServices] = useState([]);
@@ -53,6 +53,13 @@ const RoleSelectionPage = () => {
     }
 
   }, [currentUser, profile, isLoading, navigate]);
+
+  // prefill the phone collected at signup once the profile loads
+  useEffect(() => {
+    if (profile?.phoneNumber) {
+      setPhoneNumber((current) => current || profile.phoneNumber);
+    }
+  }, [profile?.phoneNumber]);
 
   /* ---------------- SERVICE TOGGLE ---------------- */
 
@@ -150,7 +157,8 @@ const RoleSelectionPage = () => {
               city: null,
               serviceArea: null,
               garageName: null,
-              phoneNumber: null,
+              // keep the signup phone — it is the customer's login identifier
+              phoneNumber: profile?.phoneNumber || null,
               experienceYears: null,
               services: [],
               availabilityStatus: null,
