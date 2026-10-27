@@ -19,3 +19,8 @@ firestore.rules
 
 # firebase deploy cache
 .firebase/
+
+
+# firebase CLI logs
+firebase-debug.log
+firestore-debug.log
