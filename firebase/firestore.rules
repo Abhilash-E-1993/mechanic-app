@@ -45,6 +45,28 @@ service cloud.firestore {
       allow create: if isCustomerCreatingOwnRequest();
       allow read: if isRequestParticipant();
       allow update: if isMechanicUpdatingAssignedRequest();
+
+      // Chat thread for an accepted request. Only the customer and the
+      // assigned mechanic can read or post, and only while the job is
+      // in its Accepted state.
+      function requestData() {
+        return get(/databases/$(database)/documents/serviceRequests/$(requestId)).data;
+      }
+
+      function isChatParticipant() {
+        return isSignedIn() && (
+          request.auth.uid == requestData().customerId ||
+          request.auth.uid == requestData().mechanicId
+        );
+      }
+
+      match /messages/{messageId} {
+        allow read: if isChatParticipant();
+        allow create: if isChatParticipant() &&
+          request.resource.data.senderId == request.auth.uid &&
+          request.resource.data.type in ["text", "audio"] &&
+          requestData().status == "Accepted";
+      }
     }
   }
 }

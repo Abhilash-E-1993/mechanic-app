@@ -6,6 +6,7 @@ import RequestList from "../components/RequestList";
 import { useAuth } from "../context/AuthContext";
 
 import {
+  expirePendingRequest,
   requestCompletionOTP,
   subscribeToMechanicRequests,
   updateRequestStatus,
@@ -94,10 +95,16 @@ const MechanicDashboard = () => {
           "Offering the request to the next nearest mechanic..."
         );
 
-        await advanceRequestToNextMechanic({
+        const advanceResult = await advanceRequestToNextMechanic({
           currentUser,
           requestId,
         });
+
+        // Backend offline -> advance the queue client-side so the
+        // request is never left stuck on a mechanic who rejected it.
+        if (advanceResult?.skipped) {
+          await expirePendingRequest(requestId);
+        }
       } else {
         await updateRequestStatus(requestId, nextStatus, currentUser.uid);
       }

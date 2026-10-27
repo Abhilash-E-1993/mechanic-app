@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import LocationMap from "./LocationMap";
+import ChatBox from "./ChatBox";
 import { estimateEtaMinutesFromLocation } from "../utils/etaService";
 import { expirePendingRequest } from "../services/firestoreService";
 
@@ -8,6 +9,13 @@ const statusStyles = {
   Accepted: "badge badge-success",
   Rejected: "badge badge-danger",
   Completed: "badge",
+};
+
+const WHEEL_LABELS = {
+  2: "🏍️ 2-Wheeler",
+  3: "🛺 3-Wheeler",
+  4: "🚗 4-Wheeler",
+  "6+": "🚚 Heavy Vehicle",
 };
 
 /* ---------- WAITING BANNER (CUSTOMER, PENDING) ---------- */
@@ -80,6 +88,11 @@ const RequestList = ({
   const [otpInputs, setOtpInputs] = useState({});
   const [otpErrors, setOtpErrors] = useState({});
   const [copiedOtp, setCopiedOtp] = useState(null);
+  const [openChats, setOpenChats] = useState({});
+  const [enlargedPhoto, setEnlargedPhoto] = useState(null);
+
+  const toggleChat = (requestId) =>
+    setOpenChats((prev) => ({ ...prev, [requestId]: !prev[requestId] }));
 
   const getMapMechanicLocation = (request) =>
     request.mechanicLocation || request.assignedMechanicLocation || null;
@@ -241,8 +254,14 @@ const RequestList = ({
 
               <div>
 
-                <p className="font-semibold text-base flex items-center gap-2">
+                <p className="font-semibold text-base flex flex-wrap items-center gap-2">
                   <span>{request.serviceType}</span>
+                  {request.vehicleWheels && (
+                    <span className="badge text-[11px] !py-0.5 !px-2">
+                      {WHEEL_LABELS[request.vehicleWheels] ||
+                        `🛞 ${request.vehicleWheels} wheels`}
+                    </span>
+                  )}
                 </p>
 
                 <p className="text-sm text-[var(--text)] mt-0.5 flex flex-wrap items-center gap-1.5">
@@ -268,6 +287,29 @@ const RequestList = ({
               </span>
 
             </div>
+
+            {/* VEHICLE PHOTOS */}
+
+            {Array.isArray(request.vehiclePhotos) &&
+              request.vehiclePhotos.length > 0 && (
+                <div>
+                  <p className="text-muted text-xs mb-1.5">
+                    📷 Vehicle photos from customer — tap to enlarge
+                  </p>
+                  <div className="photo-strip">
+                    {request.vehiclePhotos.map((photo, index) => (
+                      <img
+                        key={index}
+                        src={photo}
+                        alt={`Vehicle condition ${index + 1}`}
+                        className="photo-thumb"
+                        loading="lazy"
+                        onClick={() => setEnlargedPhoto(photo)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
             {/* CUSTOMER VIEW */}
 
@@ -505,6 +547,28 @@ const RequestList = ({
 
               )}
 
+            {/* CHAT — AVAILABLE ONCE ACCEPTED (BOTH SIDES) */}
+
+            {request.status === "Accepted" && (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => toggleChat(request.id)}
+                  className="btn-primary w-full"
+                >
+                  {openChats[request.id]
+                    ? "Close Chat"
+                    : `🎙️ Chat with ${
+                        forMechanic
+                          ? request.customerName || "Customer"
+                          : request.mechanicName || "Mechanic"
+                      } (Voice & Text)`}
+                </button>
+
+                {openChats[request.id] && <ChatBox requestId={request.id} />}
+              </div>
+            )}
+
             {/* CUSTOMER LOCATION MAP (MECHANIC VIEW) */}
 
             {shouldShowMechanicMap(request) && (
@@ -544,6 +608,22 @@ const RequestList = ({
         );
 
       })}
+
+      {/* PHOTO LIGHTBOX */}
+
+      {enlargedPhoto && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setEnlargedPhoto(null)}
+        >
+          <img
+            src={enlargedPhoto}
+            alt="Vehicle condition enlarged"
+            className="photo-lightbox-img"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      )}
 
     </div>
 

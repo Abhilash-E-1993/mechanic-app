@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import MechanicCard from "../components/MechanicCard";
 import NearbyMap from "../components/NearbyMap";
@@ -23,6 +23,7 @@ import {
 } from "../services/firestoreService";
 
 import { notifyMechanicAboutNewRequest } from "../services/notificationService";
+import { compressImageToBase64 } from "../services/mediaService";
 
 import {
   getCurrentLocation,
@@ -36,6 +37,14 @@ import {
 
 const NEARBY_RADIUS_KM = 15;
 const DEMO_TIP_KEY = "garagegoCustomerDemoTipDismissed";
+const MAX_VEHICLE_PHOTOS = 3;
+
+const WHEEL_OPTIONS = [
+  { value: "2", icon: "🏍️", label: "2 Wheeler" },
+  { value: "3", icon: "🛺", label: "3 Wheeler" },
+  { value: "4", icon: "🚗", label: "4 Wheeler" },
+  { value: "6+", icon: "🚚", label: "Heavy" },
+];
 
 const CustomerDashboard = () => {
   const { currentUser, profile } = useAuth();
@@ -57,6 +66,9 @@ const CustomerDashboard = () => {
 
   const [requestModalMechanic, setRequestModalMechanic] = useState(null);
   const [selectedServiceType, setSelectedServiceType] = useState(SERVICE_TYPES[0]);
+  const [vehicleWheels, setVehicleWheels] = useState("");
+  const [vehiclePhotos, setVehiclePhotos] = useState([]); // [{ id, base64 }]
+  const photoInputRef = useRef(null);
 
   const [demoTipDismissed, setDemoTipDismissed] = useState(
     () => window.localStorage.getItem(DEMO_TIP_KEY) === "1"
@@ -207,7 +219,46 @@ const CustomerDashboard = () => {
 
   const handleRequest = (mechanic) => {
     setSelectedServiceType(SERVICE_TYPES[0]);
+    setVehicleWheels("");
+    setVehiclePhotos([]);
     setRequestModalMechanic(mechanic);
+  };
+
+  /* ---------- VEHICLE PHOTOS ---------- */
+
+  const handlePhotoSelect = async (event) => {
+    const files = Array.from(event.target.files || []).slice(
+      0,
+      MAX_VEHICLE_PHOTOS - vehiclePhotos.length
+    );
+
+    event.target.value = "";
+
+    if (!files.length) return;
+
+    for (const file of files) {
+      try {
+        const base64 = await compressImageToBase64(file);
+
+        setVehiclePhotos((prev) =>
+          prev.length >= MAX_VEHICLE_PHOTOS
+            ? prev
+            : [
+                ...prev,
+                {
+                  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                  base64,
+                },
+              ]
+        );
+      } catch {
+        setError("One photo could not be processed. Please try another one.");
+      }
+    }
+  };
+
+  const removePhoto = (photoId) => {
+    setVehiclePhotos((prev) => prev.filter((photo) => photo.id !== photoId));
   };
 
   const closeRequestModal = () => {
@@ -217,6 +268,11 @@ const CustomerDashboard = () => {
 
   const confirmRequest = async () => {
     if (!requestModalMechanic || creatingRequest) return;
+
+    if (!vehicleWheels) {
+      setError("Please select how many wheels your vehicle has.");
+      return;
+    }
 
     setCreatingRequest(true);
     setError("");
@@ -302,6 +358,8 @@ const CustomerDashboard = () => {
         area: customerLocation.address || locationLabel || "Customer pinpoint location",
 
         serviceType: selectedServiceType,
+        vehicleWheels,
+        vehiclePhotos: vehiclePhotos.map((photo) => photo.base64),
         customerLocation: {
           lat: customerLocation.lat,
           lng: customerLocation.lng,
@@ -610,6 +668,81 @@ const CustomerDashboard = () => {
 
               ))}
 
+            </div>
+
+            {/* VEHICLE WHEELS */}
+
+            <div className="mt-5">
+              <p className="input-label mb-2">
+                How many wheels does your vehicle have?
+              </p>
+
+              <div className="wheel-grid">
+                {WHEEL_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setVehicleWheels(option.value)}
+                    className={`wheel-card ${
+                      vehicleWheels === option.value ? "wheel-card-active" : ""
+                    }`}
+                  >
+                    <span className="wheel-card-icon">{option.icon}</span>
+                    <span className="wheel-card-label">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* VEHICLE PHOTOS */}
+
+            <div className="mt-5">
+              <p className="input-label mb-2">
+                Photos of the vehicle (helps the mechanic judge the problem)
+              </p>
+
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                multiple
+                className="hidden"
+                onChange={handlePhotoSelect}
+              />
+
+              <div className="photo-strip">
+                {vehiclePhotos.map((photo) => (
+                  <div key={photo.id} className="photo-thumb-wrap">
+                    <img
+                      src={photo.base64}
+                      alt="Vehicle damage"
+                      className="photo-thumb"
+                    />
+                    <button
+                      type="button"
+                      className="photo-remove"
+                      onClick={() => removePhoto(photo.id)}
+                      title="Remove photo"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+
+                {vehiclePhotos.length < MAX_VEHICLE_PHOTOS && (
+                  <button
+                    type="button"
+                    className="photo-add-btn"
+                    onClick={() => photoInputRef.current?.click()}
+                  >
+                    <span className="photo-add-icon">📷</span>
+                    <span className="text-xs">
+                      Add photo ({vehiclePhotos.length}/{MAX_VEHICLE_PHOTOS})
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="mt-6 flex gap-3">
