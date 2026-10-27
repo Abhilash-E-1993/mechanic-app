@@ -169,10 +169,10 @@ const HomePage = () => {
         {/* CORE PLATFORM CAPABILITIES */}
         <section className="landing-section">
           <div className="section-header-center">
-            <span className="section-tag">Under the hood</span>
-            <h2 className="section-heading">How the platform is built</h2>
+            <span className="section-tag">Why GarageGo</span>
+            <h2 className="section-heading">Built for breakdowns</h2>
             <p className="section-subheading">
-              A quick look at the pieces that make dispatch and tracking work.
+              The essentials that get help to you fast — nothing extra.
             </p>
           </div>
 
@@ -181,8 +181,8 @@ const HomePage = () => {
               <div className="feature-icon-bubble">🛰️</div>
               <h3 className="feature-title">GPS Location Pinpoint</h3>
               <p className="feature-copy">
-                Reads your device's GPS coordinates and reverse-geocodes them
-                into a readable street address using Nominatim.
+                We detect your exact spot, so help finds you — not the other
+                way around.
               </p>
             </div>
 
@@ -190,8 +190,8 @@ const HomePage = () => {
               <div className="feature-icon-bubble">⚡</div>
               <h3 className="feature-title">Proximity Routing</h3>
               <p className="feature-copy">
-                Ranks nearby garages by distance and automatically queues a
-                backup if the closest one is already on a job.
+                Nearby garages are ranked by distance, with an automatic
+                backup if one is busy.
               </p>
             </div>
 
@@ -199,8 +199,7 @@ const HomePage = () => {
               <div className="feature-icon-bubble">🗺️</div>
               <h3 className="feature-title">Turn-by-Turn Tracking</h3>
               <p className="feature-copy">
-                A Leaflet and OpenStreetMap view shows the technician's route
-                and ETA, with a handoff to Google Maps for navigation.
+                Watch the technician approach on a live map with a real ETA.
               </p>
             </div>
 
@@ -208,17 +207,15 @@ const HomePage = () => {
               <div className="feature-icon-bubble">🔒</div>
               <h3 className="feature-title">Verified Completion</h3>
               <p className="feature-copy">
-                A matching 4-digit code between customer and technician
-                confirms the job before it's marked closed.
+                A 4-digit code confirms the job before it's marked done.
               </p>
             </div>
 
             <div className="feature-box">
               <div className="feature-icon-bubble">📲</div>
-              <h3 className="feature-title">Push Notifications</h3>
+              <h3 className="feature-title">Instant Alerts</h3>
               <p className="feature-copy">
-                Web Push and a service worker alert technicians to new jobs
-                even when the browser tab isn't in focus.
+                Technicians get notified the moment someone nearby needs help.
               </p>
             </div>
 
@@ -226,8 +223,7 @@ const HomePage = () => {
               <div className="feature-icon-bubble">👥</div>
               <h3 className="feature-title">Two-Sided Sync</h3>
               <p className="feature-copy">
-                Firestore listeners keep job status, requests, and assignment
-                in sync between the customer and technician views.
+                Status updates appear live on both sides — no refreshing.
               </p>
             </div>
           </div>
@@ -357,31 +353,6 @@ const HomePage = () => {
                 </p>
               </div>
             ))}
-          </div>
-        </section>
-
-        {/* TECH STACK & PRODUCTION ARCHITECTURE */}
-        <section className="landing-section">
-          <div className="tech-stack-banner">
-            <div>
-              <span className="section-tag">Built with</span>
-              <h3 className="text-xl font-bold mt-2">The stack behind GarageGo</h3>
-              <p className="text-sm text-muted mt-1 max-w-xl">
-                A modern web stack with real-time sync and responsive styling
-                for both desktop and mobile.
-              </p>
-            </div>
-
-            <div className="tech-badge-container">
-              <span className="tech-badge">React 18</span>
-              <span className="tech-badge">Vite 5</span>
-              <span className="tech-badge">Tailwind CSS</span>
-              <span className="tech-badge">Leaflet & OSM</span>
-              <span className="tech-badge">Firebase Firestore</span>
-              <span className="tech-badge">Firebase Auth</span>
-              <span className="tech-badge">Service Worker FCM</span>
-              <span className="tech-badge">Nominatim Geocoding</span>
-            </div>
           </div>
         </section>
 

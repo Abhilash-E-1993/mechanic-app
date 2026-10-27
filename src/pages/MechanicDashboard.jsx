@@ -206,9 +206,9 @@ const MechanicDashboard = () => {
             <div className="flex items-center gap-2">
               <span className="badge badge-warning text-xs font-mono">Portfolio Review Guide</span>
             </div>
-            <p className="demo-banner-title mt-1">Technician Dispatch Console</p>
+            <p className="demo-banner-title mt-1">Technician Console</p>
             <p className="demo-banner-body">
-              This technician console listens for real-time customer distress calls. When a customer sends a request, it appears here instantly without refreshing. Accept the request to view the customer’s exact pinpoint location, GPS turn-by-turn route, and verify their OTP upon service completion.
+              New customer requests appear here in real time. Accept a job to see the customer's exact location, navigate to them, and verify their OTP when done.
             </p>
           </div>
           <button
@@ -228,36 +228,38 @@ const MechanicDashboard = () => {
 
       <section className="card">
 
-        <h2 className="text-xl font-semibold">
-          Mechanic Operations Console
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
 
-        <p className="text-muted text-sm mt-1">
-          Incoming customer distress calls and active jobs update here in real time.
-        </p>
+          <div>
+            <h2 className="text-xl font-semibold">
+              Service Requests
+            </h2>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
+            <p className="text-muted text-sm mt-1">
+              New requests near you appear here in real time.
+            </p>
+          </div>
 
-          <span className="text-sm text-muted">
-            Technician Status:
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
 
-          <span
-            className={
-              profile?.availabilityStatus === "busy"
-                ? "badge badge-warning"
-                : "badge badge-success"
-            }
-          >
-            {profile?.availabilityStatus || "available"}
-          </span>
-
-          {profile?.hubName && (
-            <span className="badge">
-              {profile.hubName}
-              {profile.serviceArea ? ` · ${profile.serviceArea}` : ""}
+            <span
+              className={
+                profile?.availabilityStatus === "busy"
+                  ? "badge badge-warning"
+                  : "badge badge-success"
+              }
+            >
+              {profile?.availabilityStatus || "available"}
             </span>
-          )}
+
+            {profile?.hubName && (
+              <span className="badge">
+                {profile.hubName}
+                {profile.serviceArea ? ` · ${profile.serviceArea}` : ""}
+              </span>
+            )}
+
+          </div>
 
         </div>
 
@@ -283,14 +285,10 @@ const MechanicDashboard = () => {
 
       <section className="card">
 
-        <h3 className="text-lg font-semibold mb-4">
-          Incoming Service Requests
-        </h3>
-
         {requests.length === 0 ? (
           <div className="text-muted text-center py-6">
-            No service requests yet. When a customer nearby requests help, it
-            shows up here in real time.
+            No requests yet. When a customer nearby needs help, it shows up
+            here instantly.
           </div>
         ) : (
           <RequestList

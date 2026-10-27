@@ -410,10 +410,9 @@ const CustomerDashboard = () => {
             <div className="flex items-center gap-2">
               <span className="badge badge-warning text-xs font-mono">Portfolio Review Guide</span>
             </div>
-            <p className="demo-banner-title mt-1">Testing the Two-Sided Real-Time Dispatch</p>
+            <p className="demo-banner-title mt-1">Tip for reviewers</p>
             <p className="demo-banner-body">
-              GarageGo is role-based. After sending a request from this driver dashboard, open GarageGo in
-              an <strong>incognito window</strong> (or another browser) and log in with a mechanic account to see real-time dispatch alerts, turn-by-turn navigation, and OTP completion!
+              Send a request here, then open GarageGo in an <strong>incognito window</strong> with a mechanic account to watch it arrive in real time.
             </p>
           </div>
           <button
@@ -431,9 +430,9 @@ const CustomerDashboard = () => {
       <section className="card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-xl font-semibold">Your Pinpoint Location</h2>
+            <h2 className="text-xl font-semibold">Your Location</h2>
             <p className="text-muted text-sm mt-1">
-              Live GPS pinpointing is used to calculate exact driving distance and technician ETA.
+              Your GPS position helps us find the closest mechanic.
             </p>
           </div>
 
@@ -547,8 +546,10 @@ const CustomerDashboard = () => {
         />
       )}
 
-      {/* MECHANICS */}
+      {/* MECHANICS — hidden while a mechanic is on the way; the list
+          comes back automatically if the request is rejected or closed */}
 
+      {!customerHasAcceptedRequest && (
       <section className="card">
 
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -609,6 +610,7 @@ const CustomerDashboard = () => {
         )}
 
       </section>
+      )}
 
       {/* REQUEST HISTORY */}
 

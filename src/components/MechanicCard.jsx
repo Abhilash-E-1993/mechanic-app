@@ -15,20 +15,19 @@ const MechanicCard = ({
           {mechanic.garageName}
         </p>
 
-        <div className="mt-4 space-y-1 text-sm text-muted">
-          <p>Phone: +91 {mechanic.phoneNumber}</p>
-          <p>Area: {mechanic.serviceArea}, {mechanic.city}</p>
-          <p>Experience: {mechanic.experienceYears} years</p>
+        <p className="text-muted text-sm mt-3">
+          {mechanic.serviceArea}, {mechanic.city}
+          {mechanic.distanceKm != null
+            ? ` · ${mechanic.distanceKm.toFixed(1)} km away`
+            : ""}
+        </p>
 
-          {mechanic.estimatedEtaMinutes != null && (
-            <p>
-              ETA: {mechanic.estimatedEtaMinutes} min
-              {mechanic.distanceKm != null
-                ? ` | ${mechanic.distanceKm.toFixed(1)} km`
-                : ""}
-            </p>
-          )}
-        </div>
+        <p className="text-muted text-sm mt-1">
+          {mechanic.experienceYears} yrs experience
+          {mechanic.estimatedEtaMinutes != null
+            ? ` · ~${mechanic.estimatedEtaMinutes} min away`
+            : ""}
+        </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
           {mechanic.services?.map((service) => (
